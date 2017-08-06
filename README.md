@@ -1,5 +1,6 @@
 <a href="https://www.patreon.com/stefansarya"><img src="http://anisics.stream/assets/img/support-badge.png" height="20"></a>
 [![Build Status](https://travis-ci.org/StefansArya/LittleYoutube-PHP.svg?branch=master)](https://travis-ci.org/StefansArya/LittleYoutube-PHP)
+[![Latest Version](https://img.shields.io/badge/build-beta-yellow.svg)](https://packagist.org/packages/scarletsfiction/littleyoutube)
 [![Software License](https://img.shields.io/badge/license-GPL2-brightgreen.svg)](LICENSE)
 
 LittleYoutube
@@ -11,18 +12,29 @@ LittleYoutube is a library for retrieving youtube data with PHP script
   * Clone/download this repo
   * Include `LittleYoutube.php` to your php script
 
-## Requirement
+### Or download via composer
 
-  * PHP 5.4+
-  * FFmpeg (Needed for converting media files)
+Add LittleYoutube to composer.json configuration file.
+```
+$ composer require scarletsfiction/littleyoutube
+```
+
+And update the composer
+```
+$ composer update
+```
 
 ## Sample Usage
-```
+```php
 <?php
-    require_once "LittleYoutube.php";
+// If you installed via composer, just use this code to require autoloader on the top of your projects.
+//require 'vendor/autoload.php';
+require_once "LittleYoutube.php";
 
-    $Youtube = new ScarletsFiction\LittleYoutube;
-    echo($Youtube->getVideoIDFromURL("https://www.youtube.com/watch?v=xQomv1gqmb4"));
+use ScarletsFiction\LittleYoutube;
+
+$Youtube = new LittleYoutube();
+echo($Youtube->getVideoIDFromURL("https://www.youtube.com/watch?v=xQomv1gqmb4"));
 ```
 
 ## Contribution
