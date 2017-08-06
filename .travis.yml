@@ -8,3 +8,6 @@ matrix:
         - php: 7.1
 sudo: false
 dist: trusty
+before_install: composer self-update
+install: composer install
+script: vendor/bin/phpunit
