@@ -39,8 +39,11 @@ class LittleYoutube
 		return $id;
 	}
 
-	public function getVideoLink($id)
+	public function getVideoLink($id=false)
 	{
+		if(!$id) 
+			if(isset($data['videoID'])) $id = $data['videoID'];
+			else return "No videoID";
 		$id = self::getVideoIDFromURL($id);
 		$raw = self::loadURL('https://www.youtube.com/get_video_info?video_id='.$id.'&asv=3&hl=en_US&el=embedded&ps=default&eurl=&gl=US');
 		parse_str($raw, $data);
