@@ -6,6 +6,11 @@
     },
 	"license": "GPL",
 	"keywords": ["youtube", "php", "library", "littleyoutube"],
+    "autoload": {
+        "psr-4": {
+            "LittleYoutube\\": "LittleYoutube.php"
+        }
+    },
 	"authors": [
 		{"name": "StefansArya"}
 	]
