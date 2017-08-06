@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <phpunit backupGlobals="false"
          backupStaticAttributes="false"
          colors="true"
@@ -11,16 +10,15 @@
          syntaxCheck="false"
          stopOnError="false"
          stopOnIncomplete="false"
-         stopOnSkipped="false"
->
+         stopOnSkipped="false">
     <testsuites>
-        <testsuite name="all">
-            <directory suffix=".php"></directory>
+        <testsuite name="Test suite">
+            <directory suffix=".php">./</directory>
         </testsuite>
     </testsuites>
     <filter>
         <whitelist>
-            <directory suffix=".php"></directory>
+            <directory suffix=".php">./</directory>
         </whitelist>
     </filter>
 </phpunit>
