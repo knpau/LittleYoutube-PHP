@@ -6,5 +6,10 @@
 	use ScarletsFiction\LittleYoutube;
 	
 	$Youtube = new LittleYoutube();
-	$Youtube->getVideoIDFromURL("https://www.youtube.com/watch?v=LFRYghhS2I4");
+	$Youtube->videoID("https://www.youtube.com/watch?v=LFRYghhS2I4");
 	$Youtube->getVideoLink();
+	$Youtube->getVideoImages();
+	//print_r($Youtube->info);
+
+	if($Youtube->error) echo('Error: '.$Youtube->error);
+	else echo("All script running");

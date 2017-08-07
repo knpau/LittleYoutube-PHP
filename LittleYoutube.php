@@ -22,7 +22,7 @@ class LittleYoutube
 		}
 	}
 
-	public function getVideoIDFromURL($url)
+	public function videoID($url)
 	{
 		$id = $url;
 		if(strpos($id, '/watch?v=')!==false){
@@ -42,12 +42,14 @@ class LittleYoutube
 		return $id;
 	}
 
-	public function getVideoLink($id=false)
+	public function getVideoLink()
 	{
-		if(!$id) 
-			if(isset($this->info['videoID'])) $id = $this->info['videoID'];
-			else return "No videoID";
-		else $id = $this->getVideoIDFromURL($id);
+		if(isset($this->info['videoID'])) $id = $this->info['videoID'];
+		else{
+			$this->error = "No videoID";
+			return false;
+		}
+
 		$data = $this->loadURL('https://www.youtube.com/watch?v='.$id);
 		$data = explode(';ytplayer.load', $data)[0];
 		$data = explode('ytplayer.config = ', $data)[1];
@@ -59,8 +61,10 @@ class LittleYoutube
 		$this->info['duration'] = $data['args']['length_seconds'];
 		$this->info['viewCount'] = $data['args']['view_count'];
 
-		if(isset($data['reason'])&&$data['reason']!='')
-			return($data['reason']);
+		if(isset($data['reason'])&&$data['reason']!=''){
+			$this->error = $data['reason'];
+			return false;
+		}
 		
 		$streamMap = [[],[]];
 		if(isset($data['args']['url_encoded_fmt_stream_map']))
@@ -119,17 +123,17 @@ class LittleYoutube
 		return $data;
 	}
 	
-	public function getVideoImages($id, $quality=1)
+	public function getVideoImages()
 	{
-		if($quality==1){//High Quality Thumbnail (480x360px)
-			return "http://i1.ytimg.com/vi/$id/hqdefault.jpg";
-		}
-		if($quality==2){//Medium Quality Thumbnail (320x180px)
-			return "http://i1.ytimg.com/vi/$id/mqdefault.jpg";
-		}
-		if($quality==3){//Normal Quality Thumbnail (120x90px)
-			return "http://i1.ytimg.com/vi/$id/default.jpg";
-		}
+		$id = $this->info['videoID'];
+		return [
+		//High Quality Thumbnail (480x360px)
+			"http://i1.ytimg.com/vi/$id/hqdefault.jpg",
+		//Medium Quality Thumbnail (320x180px)
+			"http://i1.ytimg.com/vi/$id/mqdefault.jpg",
+		//Normal Quality Thumbnail (120x90px)
+			"http://i1.ytimg.com/vi/$id/default.jpg"
+		];
 	}
 
 	private function getPlayerScript($playerURL){
@@ -242,7 +246,10 @@ class LittleYoutube
 		}
 		else $this->getSignatureParser();
 
-		if(!isset($this->data['signature']['patterns'])) return false;
+		if(!isset($this->data['signature']['patterns'])){
+			$this->error = "Signature patterns not found";
+			return false;
+		}
 		$patterns = $this->data['signature']['patterns'];
 		$deciphers = $this->data['signature']['deciphers'];
 
@@ -277,7 +284,7 @@ class LittleYoutube
 				}
 				else{
 					$this->error = "Decipher dictionary was not found #1";
-					return;
+					return false;
 				}
 			} 
 			else
@@ -314,7 +321,7 @@ class LittleYoutube
 					break;
 					default:
 						$this->error = "Decipher dictionary was not found #2";
-						return;
+						return false;
 					break;
 				}
 			}

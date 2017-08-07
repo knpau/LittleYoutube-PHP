@@ -34,7 +34,8 @@ require_once "LittleYoutube.php";
 use ScarletsFiction\LittleYoutube;
 
 $Youtube = new LittleYoutube();
-echo($Youtube->getVideoIDFromURL("https://www.youtube.com/watch?v=xQomv1gqmb4"));
+$Youtube->videoID("https://www.youtube.com/watch?v=xQomv1gqmb4");
+print_r($Youtube->getVideoImages());
 ```
 
 ## Contribution
