@@ -14,11 +14,12 @@ class LittleYoutube
 		$this->settings = [
 			"temporaryDirectory"=>realpath(__DIR__."/temp"),
 			"signatureDebug"=>false,
+			"loadVideoMetadata"=>false
 		];
 		$this->info = [];
 		$this->data = [];
 		if($options){
-			$this->settings = (object) array_merge((array) $this->settings, (array) $options);
+			$this->settings = array_replace($this->settings,$options);
 		}
 	}
 
