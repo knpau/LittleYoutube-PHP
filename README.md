@@ -7,6 +7,8 @@ LittleYoutube
 ==========
 
 LittleYoutube is a library for retrieving youtube data with PHP script
+> Note:
+>   Please use this library for fair use when downloading any youtube content. If you want to display youtube video to your website, please embed youtube link rather than download it. And don't ever use this for commercial use.
 
 ## Table of contents
  - [LittleYoutube](#littleyoutube)
@@ -50,9 +52,10 @@ require_once "LittleYoutube.php";
 
 use ScarletsFiction\LittleYoutube;
 
-$Youtube = new LittleYoutube();
-$Youtube->videoID("https://www.youtube.com/watch?v=xQomv1gqmb4");
-print_r($Youtube->getVideoImages());
+$LittleYoutube = new LittleYoutube();
+$LittleYoutube->videoID("https://www.youtube.com/watch?v=xQomv1gqmb4");
+echo("Video ID:".$LittleYoutube->info['videoID']."\n");
+print_r($LittleYoutube->getVideoImages());
 ```
 
 ## Documentation
@@ -71,9 +74,9 @@ Available options
 ### Set youtube video URL
 > $LittleYoutube->videoID("videoURLHere");
 
-Return 
+Return string
 ```
-(string) videoID //LFRYghhS2I4
+videoID //LFRYghhS2I4
 ```
 
 ### Retrieve video media links

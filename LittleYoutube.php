@@ -58,6 +58,11 @@ class LittleYoutube
 		unset($data['args']['fflags']);
 
 		$this->getPlayerScript($data['assets']['js']);
+
+		if(!isset($data['args']['title'])){
+			$this->error = "Video not exist";
+			return false;
+		}
 		$this->info['title'] = $data['args']['title'];
 		$this->info['duration'] = $data['args']['length_seconds'];
 		$this->info['viewCount'] = $data['args']['view_count'];
@@ -68,15 +73,16 @@ class LittleYoutube
 		}
 		
 		$streamMap = [[],[]];
-		if(isset($data['args']['url_encoded_fmt_stream_map']))
+		if(isset($data['args']['url_encoded_fmt_stream_map'])){
 			$streamMap[0] = explode(',', $data['args']['url_encoded_fmt_stream_map']);
-		if(isset($data['args']['adaptive_fmts']))
+			if(count($streamMap[0])) $streamMap[0] =  $this->streamMapToArray($streamMap[0]);
+		}
+		if(isset($data['args']['adaptive_fmts'])){
 			$streamMap[1] = explode(',', $data['args']['adaptive_fmts']);
+			if(count($streamMap[1])) $streamMap[1] =  $this->streamMapToArray($streamMap[1]);
+		}
 
-		return [
-			"encoded"=>$this->streamMapToArray($streamMap[0]),
-			"adaptive"=>$this->streamMapToArray($streamMap[1])
-		];
+		return $streamMap;
 	}
 
 	private function streamMapToArray($streamMap)
@@ -111,7 +117,7 @@ class LittleYoutube
   				$signature = '&signature='.$this->decipherSignature($map_info['s']);
 			}
 	
-			$map['url'] = $map_info['url'].$signature.'&title='.$this->info['title'];
+			$map['url'] = $map_info['url'].$signature.'&title='.urlencode($this->info['title']);
 		}
 		return $streamMap;
 	}
