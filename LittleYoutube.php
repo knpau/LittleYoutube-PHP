@@ -12,13 +12,13 @@ class LittleYoutube
 	public function __construct($options = null)
 	{
 		$this->settings = [
-			"temporaryDirectory"=>realpath("./temp"),
+			"temporaryDirectory"=>realpath(__DIR__."/temp"),
 			"signatureDebug"=>false,
 		];
 		$this->info = [];
 		$this->data = [];
 		if($options){
-			$settings = (object) array_merge((array) $settings, (array) $options);
+			$this->settings = (object) array_merge((array) $this->settings, (array) $options);
 		}
 	}
 
@@ -55,7 +55,7 @@ class LittleYoutube
 		unset($data['args']['fflags']);
 
 		$this->getPlayerScript($data['assets']['js']);
-		$this->info['videoID'] = $data['args']['title'];
+		$this->info['title'] = $data['args']['title'];
 		$this->info['duration'] = $data['args']['length_seconds'];
 		$this->info['viewCount'] = $data['args']['view_count'];
 
@@ -104,7 +104,7 @@ class LittleYoutube
   				$signature = '&signature='.$this->decipherSignature($map_info['s']);
 			}
 	
-			$map['url'] = $map_info['url'].$signature;
+			$map['url'] = $map_info['url'].$signature.'&title='.$this->info['title'];
 		}
 		return $streamMap;
 	}
@@ -144,7 +144,7 @@ class LittleYoutube
 	
 		if(!file_exists($this->settings['temporaryDirectory']."/$playerID")) {
 			$decipherScript = $this->loadURL("https://youtube.com/yts/jsbin/player-$playerURL");
-			file_put_contents($settings['temporaryDirectory']."/$playerID", $decipherScript);
+			file_put_contents($this->settings['temporaryDirectory']."/$playerID", $decipherScript);
 		}
 
 		$this->info['playerID'] = $playerID;
