@@ -36,9 +36,10 @@ require_once "LittleYoutube.php";
 
 use ScarletsFiction\LittleYoutube;
 
-$Youtube = new LittleYoutube();
-$Youtube->videoID("https://www.youtube.com/watch?v=xQomv1gqmb4");
-print_r($Youtube->getVideoImages());
+$LittleYoutube = new LittleYoutube();
+$LittleYoutube->videoID("https://www.youtube.com/watch?v=xQomv1gqmb4");
+echo("Video ID:".$LittleYoutube->info['videoID']."\n");
+print_r($LittleYoutube->getVideoImages());
 ```
 
 ## Documentation
@@ -67,9 +68,9 @@ Return
 
 Return 
 ```
-[
+{
     "encoded"=>[
-        [0] => [
+        [0] => {
             "itag",
             "type"=>[
                 [0] => Media    //video
@@ -79,11 +80,11 @@ Return
             "expire",  //timestamp
             "quality", //hd720, medium, small
             "url"
-        ],
+        },
         ...
     ],
     "encoded"=>[
-        [0] => [
+        [0] => {
             "itag",
             "type"=>[
                 [0] => Media    //video
@@ -93,22 +94,42 @@ Return
             "expire",  //timestamp
             "quality", //1080p, 720p, 192k, 144k
             "url"
-        ],
+        },
         ...
     ]
-]
+}
 ```
 
 ### Get video image preview
 > $LittleYoutube->getVideoImages();
 
+Return array
+```
+[
+    "HighQualityURL", "MediumQualityURL", "DefaultQualityURL"
+]
+```
+
 ### Get last error message
 > $LittleYoutube->error;
+
+Return 
+```
+(string) errorMsg //Failed to do stuff
+```
 
 ### Get info
 > $LittleYoutube->info;
 
+Return keys
+```
+{
+    "videoID", "playerID", "title", "duration", "viewCount"
+}
+```
+
 ### Change settings dynamically
+You can also change the settings after initialize LittleYoutube
 > $LittleYoutube->settings[options] = value;
 
 ## Contribution
