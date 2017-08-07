@@ -14,7 +14,8 @@ class LittleYoutube
 		$this->settings = [
 			"temporaryDirectory"=>realpath(__DIR__."/temp"),
 			"signatureDebug"=>false,
-			"loadVideoMetadata"=>false
+			"loadVideoSize"=>false,
+			"videoDetails"=>true
 		];
 		$this->info = [];
 		$this->data = [];
@@ -52,8 +53,11 @@ class LittleYoutube
 		}
 
 		$data = $this->loadURL('https://www.youtube.com/watch?v='.$id);
-		$data = explode(';ytplayer.load', $data)[0];
 		$data = explode('ytplayer.config = ', $data)[1];
+		$data = explode(';ytplayer.load', $data);
+		if($this->settings['videoDetails'])
+			$this->parseVideoDetail($data[1]);
+		$data = $data[0];
 		$data = json_decode($data, true);
 		unset($data['args']['fflags']);
 
@@ -66,6 +70,8 @@ class LittleYoutube
 		$this->info['title'] = $data['args']['title'];
 		$this->info['duration'] = $data['args']['length_seconds'];
 		$this->info['viewCount'] = $data['args']['view_count'];
+		$this->info['author'] = $data['args']['author'];
+		//player_response
 
 		if(isset($data['reason'])&&$data['reason']!=''){
 			$this->error = $data['reason'];
@@ -83,6 +89,41 @@ class LittleYoutube
 		}
 
 		return ["encoded"=>$streamMap[0], "adaptive"=>$streamMap[1]];
+	}
+
+	private function parseVideoDetail($data){
+		$panelDetails = explode('"action-panel-details"', $data)[1];
+		$panelDetails = explode("<button", $panelDetails)[0];
+
+		$uploaded = explode('"watch-time-text">', $panelDetails)[1];
+		$uploaded = explode('</strong>', $uploaded)[0];
+		$this->info['uploaded'] = $uploaded;
+
+		$description = explode('"eow-description"', $panelDetails)[1];
+		$description = str_replace(['<br />', '<br/>', '<br>'], "\n", $description);
+		$description = strip_tags('<p'.explode('</p>', $description)[0]);
+		$this->info['description'] = $description;
+		
+		$metatag = trim('<'.explode('"watch-extras-section"', $panelDetails)[1]);
+		$metatag = str_replace('  ', '', $metatag);
+		$metatag = explode("<h4 class=\"title\">\n", $metatag);
+		unset($metatag[0]);
+		$metatag = array_values($metatag);
+		foreach ($metatag as &$value) {
+			$value = trim(str_replace("\n\n\n", ' ', strip_tags($value)));
+		}
+		$this->info['metatag'] = $metatag;
+		
+		$likeDetails = explode('"like-button-renderer', $data)[1];
+		$likeDetails = explode('dislike-button-clicked yt-uix-button-toggled', $likeDetails)[0];
+		$likeDetails = explode('like-button-unclicked', $likeDetails);
+		unset($likeDetails[0]);
+		foreach ($likeDetails as &$value) {
+			$value = explode('button-content">', $value)[1];
+			$value = explode('</span>', $value)[0];
+		}
+		$this->info['like'] = str_replace('.', '', $likeDetails[1]);
+		$this->info['dislike'] = str_replace('.', '', $likeDetails[2]);
 	}
 
 	private function streamMapToArray($streamMap)
@@ -146,12 +187,14 @@ class LittleYoutube
 	}
 
 	private function getPlayerScript($playerURL){
-		$playerID = explode("/yts/jsbin/player-", $playerURL);
-		if(count($playerID)<=1){
+		try{
+			$playerID = explode("/yts/jsbin/player", $playerURL)[1];
+			$playerID = explode("-", explode("/", $playerID)[0]);
+			$playerID = $playerID[count($playerID)-1];
+		} catch(Exception $e){
 			$this->error = "Failed to parse playerID from player url: ".$playerURL;
 			return false;
 		}
-		$playerID = $playerID[1];
 		$playerURL = str_replace('\/', '/', explode('"', $playerID)[0]);
 		$playerID = explode('/', $playerURL)[0];
 	
