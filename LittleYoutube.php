@@ -170,6 +170,36 @@ class LittleYoutube
 		return $streamMap;
 	}
 
+	public function getEmbedLink(){
+		return "//www.youtube.com/embed/".$this->info['videoID']."?rel=0";
+	}
+
+	public function parseSubtitle($idOrXML = false){
+		if(is_string($idOrXML)){
+			$data = $idOrXML;
+		} else{
+			if(!isset($this->info['subtitle'][$idOrXML])){
+				$this->error = "No subtitle found";
+				return false;
+			}
+			$data = $this->loadURL($this->info['subtitle'][$idOrXML]['url']);
+		}
+		if(!$data) return false;
+
+		$data = str_replace(['</transcript>', '</text>'], '', $data);
+		$data = explode('<text ', $data);
+		unset($data[0]); $data = array_values($data);
+
+		foreach ($data as &$value) {
+			$value = explode('>', $value);
+			$value = ["when"=>$value[0], "text"=>strip_tags(html_entity_decode($value[1]))];
+			$value['time'] = explode('"', explode('start="', $value['when'])[1])[0];
+			$value['duration'] = explode('"', explode('dur="', $value['when'])[1])[0];
+			unset($value['when']);
+		}
+		return $data;
+	}
+
 	private function loadURL($url){
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);

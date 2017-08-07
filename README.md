@@ -24,7 +24,8 @@ LittleYoutube is here to help you
    - [Retrieve video media links](#retrieve-video-media-links)
    - [Get video image preview](#get-video-image-preview])
    - [Get last error message](#get-last-error-message)
-   - [Get info](#getiinfo)
+   - [Get embed link](#get-embed-link)
+   - [Get info](#get-info)
    - [Change settings dynamically](#change-settings-dynamically)
  - [Contribution](#contribution)
  - [License](#license)
@@ -135,6 +136,32 @@ Return Indexed Array
 Return string
 ```
 errorMsg //Failed to do stuff
+```
+
+### Get embed link
+> $LittleYoutube->getEmbedLink();
+
+```
+// Usually we will wrap it with iframe
+
+echo('<iframe width="480" height="360" src="'.$LittleYoutube->getEmbedLink().'" frameborder="0" allowfullscreen></iframe>');
+```
+
+### Parse subtitle
+> $LittleYoutube->parseSubtitle(args);
+
+```
+// args: subtitle index or xml string
+// note: make sure getVideoLink() already called if not passing xml string
+
+[
+    [1]=>[
+        [time] => 1.31,
+        [duration] => 6.609,
+        [text]=>"in a single lifetime we can take a days"
+    ],
+    ...
+]
 ```
 
 ### Get info
