@@ -8,11 +8,14 @@ LittleYoutube
 
 LittleYoutube is a library for retrieving youtube data with PHP script
 
-## Getting Started
-  * Clone/download this repo
-  * Include `LittleYoutube.php` to your php script
+## Table of contents
+[TOC]
 
-### Or download via composer
+## Getting Started
+>  * Clone/download this repo
+>  * Include `LittleYoutube.php` to your php script
+
+### Download via composer
 
 Add LittleYoutube to composer.json configuration file.
 ```
@@ -37,6 +40,76 @@ $Youtube = new LittleYoutube();
 $Youtube->videoID("https://www.youtube.com/watch?v=xQomv1gqmb4");
 print_r($Youtube->getVideoImages());
 ```
+
+## Documentation
+### Initialize LittleYoutube
+> $LittleYoutube = new LittleYoutube(options);
+
+Available options
+```
+[
+    "temporaryDirectory"=>realpath(__DIR__."/temp"),
+    "signatureDebug"=>false,
+    "loadVideoMetadata"=>false
+]
+```
+
+### Set youtube video URL
+> $LittleYoutube->videoID("videoURLHere");
+
+Return 
+```
+(string) videoID //LFRYghhS2I4
+```
+
+### Retrieve video media links
+> $LittleYoutube->getVideoLink();
+
+Return 
+```
+[
+    "encoded"=>[
+        [0] => [
+            "itag",
+            "type"=>[
+                [0] => Media    //video
+                [1] => Format   //mp4
+                [2] => Encoder  //avc1.64001F, mp4a.40.2
+            ],
+            "expire",  //timestamp
+            "quality", //hd720, medium, small
+            "url"
+        ],
+        ...
+    ],
+    "encoded"=>[
+        [0] => [
+            "itag",
+            "type"=>[
+                [0] => Media    //video
+                [1] => Format   //mp4
+                [2] => Encoder  //avc1.4d401f
+            ],
+            "expire",  //timestamp
+            "quality", //1080p, 720p, 192k, 144k
+            "url"
+        ],
+        ...
+    ]
+]
+```
+
+### Get video image preview
+> $LittleYoutube->getVideoImages();
+
+### Get last error message
+> $LittleYoutube->error;
+
+### Get info
+> $LittleYoutube->info;
+
+### Change settings dynamically
+> $LittleYoutube->settings[options] = value;
 
 ## Contribution
 

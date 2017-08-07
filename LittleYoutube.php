@@ -89,11 +89,13 @@ class LittleYoutube
 			$map = [];
 			$map['itag'] = $map_info['itag'];
 			$map['type'] = explode(';', $map_info['type']);
-			$map['type'][1] = explode('"', $map['type'][1])[1];
+			$format = explode('/', $map['type'][0]);
+			$encoder = explode('"', $map['type'][1])[1];
+			$map['type'] = array_merge($format, [$encoder]);
 			$map['expire'] = isset($url_info['expire'])?$url_info['expire']:0;
 
 			if(isset($map_info['bitrate']))
-				$map['quality'] = round($map_info['bitrate']/1000).'k';
+				$map['quality'] = isset($map_info['quality_label'])?$map_info['quality_label']:round($map_info['bitrate']/1000).'k';
 			else
 				$map['quality'] = isset($map_info['quality'])?$map_info['quality']:'';
 	
