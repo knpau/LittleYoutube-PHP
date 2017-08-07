@@ -82,7 +82,7 @@ class LittleYoutube
 			if(count($streamMap[1])) $streamMap[1] =  $this->streamMapToArray($streamMap[1]);
 		}
 
-		return $streamMap;
+		return ["encoded"=>$streamMap[0], "adaptive"=>$streamMap[1]];
 	}
 
 	private function streamMapToArray($streamMap)

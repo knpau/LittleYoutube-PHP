@@ -64,11 +64,11 @@ print_r($LittleYoutube->getVideoImages());
 
 Available options
 ```
-[
+{
     "temporaryDirectory"=>realpath(__DIR__."/temp"),
     "signatureDebug"=>false,
     "loadVideoMetadata"=>false
-]
+}
 ```
 
 ### Set youtube video URL
@@ -82,7 +82,7 @@ videoID //LFRYghhS2I4
 ### Retrieve video media links
 > $LittleYoutube->getVideoLink();
 
-Return 
+Return
 ```
 {
     "encoded"=>[
@@ -99,7 +99,7 @@ Return
         },
         ...
     ],
-    "encoded"=>[
+    "adaptive"=>[
         [0] => {
             "itag",
             "type"=>[
@@ -119,11 +119,9 @@ Return
 ### Get video image preview
 > $LittleYoutube->getVideoImages();
 
-Return array
+Return Indexed Array
 ```
-[
-    "HighQualityURL", "MediumQualityURL", "DefaultQualityURL"
-]
+[ "HighQualityURL", "MediumQualityURL", "DefaultQualityURL" ]
 ```
 
 ### Get last error message
@@ -137,11 +135,9 @@ Return
 ### Get info
 > $LittleYoutube->info;
 
-Return keys
+Return Associative Array
 ```
-{
-    "videoID", "playerID", "title", "duration", "viewCount"
-}
+{ "videoID", "playerID", "title", "duration", "viewCount" }
 ```
 
 ### Change settings dynamically
