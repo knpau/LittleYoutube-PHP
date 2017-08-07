@@ -6,7 +6,9 @@
 LittleYoutube
 ==========
 
-LittleYoutube is a library for retrieving youtube data with PHP script
+Have you ever dreamed put your own channel on your own website?
+LittleYoutube is here to help you
+
 > Note:
 >   Please use this library for fair use when downloading any youtube content. If you want to display youtube video to your website, please embed youtube link rather than download it. And don't ever use this for commercial use.
 
@@ -67,7 +69,8 @@ Available options
 {
     "temporaryDirectory"=>realpath(__DIR__."/temp"),
     "signatureDebug"=>false,
-    "loadVideoMetadata"=>false
+    "loadVideoSize"=>false,
+    "videoDetails"=>true
 }
 ```
 
@@ -95,7 +98,8 @@ Return
             ],
             "expire",  //timestamp
             "quality", //hd720, medium, small
-            "url"
+            "url",
+            "size" //When loadVideoSize was enabled
         },
         ...
     ],
@@ -109,7 +113,8 @@ Return
             ],
             "expire",  //timestamp
             "quality", //1080p, 720p, 192k, 144k
-            "url"
+            "url",
+            "size" //When loadVideoSize was enabled
         },
         ...
     ]
@@ -127,17 +132,26 @@ Return Indexed Array
 ### Get last error message
 > $LittleYoutube->error;
 
-Return 
+Return string
 ```
-(string) errorMsg //Failed to do stuff
+errorMsg //Failed to do stuff
 ```
 
 ### Get info
 > $LittleYoutube->info;
 
-Return Associative Array
+Return Associative Array of current video info
 ```
-{ "videoID", "playerID", "title", "duration", "viewCount" }
+{ "videoID", "playerID", "title", "duration", "viewCount", "like", "dislike", "author", "subtitle", "uploaded", "description", "metatag" }
+
+//When signatureDebug was enabled
+{
+    "signature"=>{
+        "playerID", //Log for current playerID 
+        "log" //Last video log
+    },
+    ...
+}
 ```
 
 ### Change settings dynamically

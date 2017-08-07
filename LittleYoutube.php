@@ -71,8 +71,15 @@ class LittleYoutube
 		$this->info['duration'] = $data['args']['length_seconds'];
 		$this->info['viewCount'] = $data['args']['view_count'];
 		$this->info['author'] = $data['args']['author'];
-		//player_response
 
+		$subtitle = json_decode($data['args']['player_response'], true);
+		if(isset($subtitle['captions'])){
+			$this->info['subtitle'] = $subtitle['captions']['playerCaptionsTracklistRenderer']['captionTracks'];
+			foreach ($this->info['subtitle'] as &$value) {
+				$value = ['url'=>$value['baseUrl'], 'lang'=>$value['languageCode']];
+			}
+		} else $this->info['subtitle'] = false;
+		
 		if(isset($data['reason'])&&$data['reason']!=''){
 			$this->error = $data['reason'];
 			return false;
@@ -208,10 +215,10 @@ class LittleYoutube
 	}
 
 	private function getSignatureParser(){
-		$this->data['signature'] = ['playerID'=>$this->info['playerID']];
+		$this->info['signature'] = ['playerID'=>$this->info['playerID']];
 		if($this->settings['signatureDebug']){
-			$this->data['signature']['log'] = "==== Load player script and execute patterns ====\n\n";
-			$this->data['signature']['log'] .= "Loading player ID = ".$this->info['playerID']."\n";
+			$this->info['signature']['log'] = "==== Load player script and execute patterns ====\n\n";
+			$this->info['signature']['log'] .= "Loading player ID = ".$this->info['playerID']."\n";
 		}
 		
 		if(!$this->info['playerID']) return false;
@@ -245,13 +252,13 @@ class LittleYoutube
 		}
 		
 		if($this->settings['signatureDebug'])
-			$this->data['signature']['log'] .= 'signatureFunction = '.$signatureFunction."\n";
+			$this->info['signature']['log'] .= 'signatureFunction = '.$signatureFunction."\n";
 
 		$decipherPatterns = explode($signatureFunction."=function(", $decipherScript)[1];
 		$decipherPatterns = explode('};', $decipherPatterns)[0];
 		
 		if($this->settings['signatureDebug'])
-			$this->data['signature']['log'] .= 'decipherPatterns = '.$decipherPatterns."\n";
+			$this->info['signature']['log'] .= 'decipherPatterns = '.$decipherPatterns."\n";
 	
 		$deciphers = explode("(a", $decipherPatterns);
 		for ($i=0; $i < count($deciphers); $i++) { 
@@ -273,7 +280,7 @@ class LittleYoutube
 		$decipher = explode('}};', $decipher)[0];
 		$decipher = explode("},", $decipher);
 		if($this->settings['signatureDebug'])
-			$this->data['signature']['log'] .= print_r($decipher, true);
+			$this->info['signature']['log'] .= print_r($decipher, true);
 	
 		// Convert pattern to array
 		$decipherPatterns = str_replace($deciphersObjectVar.'.', '', $decipherPatterns);
@@ -292,9 +299,9 @@ class LittleYoutube
 	}
 	
 	public function decipherSignature($signature){
-		if(isset($this->data['signature']['playerID'])&&$this->data['signature']['playerID']==$this->info['playerID']){
+		if(isset($this->info['signature']['playerID'])&&$this->info['signature']['playerID']==$this->info['playerID']){
 			if($this->settings['signatureDebug'])
-				$this->data['signature']['log'] = "==== Deciphers loaded ====\n";
+				$this->info['signature']['log'] = "==== Deciphers loaded ====\n";
 		}
 		else $this->getSignatureParser();
 
@@ -306,13 +313,13 @@ class LittleYoutube
 		$deciphers = $this->data['signature']['deciphers'];
 
 		if($this->settings['signatureDebug']){
-			$this->data['signature']['log'] = "==== Retrieved deciphers ====\n\n";
-			$this->data['signature']['log'] .= print_r($patterns, true);
-			$this->data['signature']['log'] .= print_r($deciphers, true);
+			$this->info['signature']['log'] = "==== Retrieved deciphers ====\n\n";
+			$this->info['signature']['log'] .= print_r($patterns, true);
+			$this->info['signature']['log'] .= print_r($deciphers, true);
 		}
 	
 		if($this->settings['signatureDebug'])
-			$this->data['signature']['log'] .= "\n\n\n==== Processing ====\n\n";
+			$this->info['signature']['log'] .= "\n\n\n==== Processing ====\n\n";
 	
 		// Execute every $patterns with $deciphers dictionary
 		$processSignature = $signature;
@@ -326,13 +333,13 @@ class LittleYoutube
 				{
 					$processSignature = str_split($processSignature);
 					if($this->settings['signatureDebug'])
-						$this->data['signature']['log'] .= "String splitted\n";
+						$this->info['signature']['log'] .= "String splitted\n";
 				}
 				else if(strpos($patterns[$i], '.join("")')!==false)
 				{
 					$processSignature = implode('', $processSignature);
 					if($this->settings['signatureDebug'])
-						$this->data['signature']['log'] .= "String combined\n";
+						$this->info['signature']['log'] .= "String combined\n";
 				}
 				else{
 					$this->error = "Decipher dictionary was not found #1";
@@ -352,24 +359,24 @@ class LittleYoutube
 	
 				//Find matched command dictionary
 				if($this->settings['signatureDebug'])
-					$this->data['signature']['log'] .= "Executing $executes[0] -> $number";
+					$this->info['signature']['log'] .= "Executing $executes[0] -> $number";
 				switch($execute){
 					case "a.reverse()":
 						$processSignature = array_reverse($processSignature);
 						if($this->settings['signatureDebug'])
-							$this->data['signature']['log'] .= " (Reversing array)\n";
+							$this->info['signature']['log'] .= " (Reversing array)\n";
 					break;
 					case "var c=a[0];a[0]=a[b%a.length];a[b]=c":
 						$c = $processSignature[0];
 						$processSignature[0] = $processSignature[$number%count($processSignature)];
 						$processSignature[$number] = $c;
 						if($this->settings['signatureDebug'])
-							$this->data['signature']['log'] .= " (Swapping array)\n";
+							$this->info['signature']['log'] .= " (Swapping array)\n";
 					break;
 					case "a.splice(0,b)":
 						$processSignature = array_slice($processSignature, $number);
 						if($this->settings['signatureDebug'])
-							$this->data['signature']['log'] .= " (Removing array)\n";
+							$this->info['signature']['log'] .= " (Removing array)\n";
 					break;
 					default:
 						$this->error = "Decipher dictionary was not found #2";
@@ -380,9 +387,9 @@ class LittleYoutube
 		}
 	
 		if($this->settings['signatureDebug']){
-			$this->data['signature']['log'] .= "\n\n\n==== Result ====\n";
-			$this->data['signature']['log'] .= "Signature  : ".$signature."\n";
-			$this->data['signature']['log'] .= "Deciphered : ".$processSignature;
+			$this->info['signature']['log'] .= "\n\n\n==== Result ====\n";
+			$this->info['signature']['log'] .= "Signature  : ".$signature."\n";
+			$this->info['signature']['log'] .= "Deciphered : ".$processSignature;
 		}
 
 		return $processSignature;
