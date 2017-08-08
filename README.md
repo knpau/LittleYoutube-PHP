@@ -21,11 +21,11 @@ LittleYoutube is here to help you
  - [Documentation](#documentation)
    - [Initialize LittleYoutube](#initialize-littleyoutube)
    - [Set youtube video URL](#set-youtube-video-url)
-   - [Retrieve video media links](#retrieve-video-media-links)
    - [Get video image preview](#get-video-image-preview])
    - [Get last error message](#get-last-error-message)
    - [Get embed link](#get-embed-link)
    - [Get info](#get-info)
+   - [Parse subtitle](#parse-subtitle)
    - [Change settings dynamically](#change-settings-dynamically)
  - [Contribution](#contribution)
  - [License](#license)
@@ -49,16 +49,15 @@ $ composer update
 ## Sample Usage
 ```php
 <?php
-// If you installed via composer, just use this code to require autoloader on the top of your projects.
-//require 'vendor/autoload.php';
-require_once "LittleYoutube.php";
+    // require 'vendor/autoload.php';
+    require_once "LittleYoutube.php";
 
-use ScarletsFiction\LittleYoutube;
+    use ScarletsFiction\LittleYoutube;
 
-$LittleYoutube = new LittleYoutube();
-$LittleYoutube->videoID("https://www.youtube.com/watch?v=xQomv1gqmb4");
-echo("Video ID:".$LittleYoutube->info['videoID']."\n");
-print_r($LittleYoutube->getVideoImages());
+    $LittleYoutube = new LittleYoutube();
+    $LittleYoutube->video("https://www.youtube.com/watch?v=xQomv1gqmb4");
+    echo("Video ID:".$LittleYoutube->info['videoID']."\n");
+    print_r($LittleYoutube->getVideoImages());
 ```
 
 ## Documentation
@@ -70,23 +69,21 @@ Available options
 {
     "temporaryDirectory"=>realpath(__DIR__."/temp"),
     "signatureDebug"=>false,
-    "loadVideoSize"=>false,
-    "videoDetails"=>true
+    "loadVideoSize"=>false
 }
 ```
 
-### Set youtube video URL
-> $LittleYoutube->videoID("videoURLHere");
+### Init youtube video
+> $video = $LittleYoutube->videoID("videoURLHere", ProcessDetails=true);
 
-Return string
-```
-videoID //LFRYghhS2I4
-```
+Return video class
 
-### Retrieve video media links
-> $LittleYoutube->getVideoLink();
+#### Get video map
+> $video->info['video'];
+>>  Not available when ProcessDetails = false
+>> You can also call $video->processDetails() to refresh data
 
-Return
+Return Associative Arrays
 ```
 {
     "encoded"=>[
@@ -122,24 +119,16 @@ Return
 }
 ```
 
-### Get video image preview
-> $LittleYoutube->getVideoImages();
+#### Get video image preview
+> $video->getVideoImages();
 
 Return Indexed Array
 ```
 [ "HighQualityURL", "MediumQualityURL", "DefaultQualityURL" ]
 ```
 
-### Get last error message
-> $LittleYoutube->error;
-
-Return string
-```
-errorMsg //Failed to do stuff
-```
-
-### Get embed link
-> $LittleYoutube->getEmbedLink();
+#### Get embed link
+> $video->getEmbedLink();
 
 ```
 // Usually we will wrap it with iframe
@@ -147,15 +136,14 @@ errorMsg //Failed to do stuff
 echo('<iframe width="480" height="360" src="'.$LittleYoutube->getEmbedLink().'" frameborder="0" allowfullscreen></iframe>');
 ```
 
-### Parse subtitle
-> $LittleYoutube->parseSubtitle(args);
+#### Parse subtitle
+> $video->parseSubtitle(args);
+>>  args: subtitle index or xml string
+>>  note: if you pass subtitle index, ProcessDetails must be enabled/called
 
 ```
-// args: subtitle index or xml string
-// note: make sure getVideoLink() already called if not passing xml string
-
 [
-    [1]=>[
+    [0]=>[
         [time] => 1.31,
         [duration] => 6.609,
         [text]=>"in a single lifetime we can take a days"
@@ -164,21 +152,31 @@ echo('<iframe width="480" height="360" src="'.$LittleYoutube->getEmbedLink().'" 
 ]
 ```
 
-### Get info
-> $LittleYoutube->info;
+#### Get info
+> $video->info;
 
 Return Associative Array of current video info
 ```
-{ "videoID", "playerID", "title", "duration", "viewCount", "like", "dislike", "author", "subtitle", "uploaded", "description", "metatag" }
+{ "videoID",
+
+//When ProcessDetail was enabled/called
+"playerID", "title", "duration", "viewCount", "like", "dislike", "author", "video" "subtitle", "uploaded", "description", "metatag", "channelID",
 
 //When signatureDebug was enabled
-{
     "signature"=>{
         "playerID", //Log for current playerID 
         "log" //Last video log
     },
     ...
 }
+```
+
+### Get last error message
+> $LittleYoutube->error;
+
+Return string
+```
+errorMsg //Failed to do stuff
 ```
 
 ### Change settings dynamically
