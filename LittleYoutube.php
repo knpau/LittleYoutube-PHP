@@ -104,7 +104,6 @@ namespace ScarletsFiction\LittleYoutube{
 			unset($data['args']['fflags']);
 
 			$this->getPlayerScript($data['assets']['js']);
-
 			if(!isset($data['args']['title'])){
 				$this->error = "Video not exist";
 				return false;
@@ -112,7 +111,6 @@ namespace ScarletsFiction\LittleYoutube{
 			$this->data['title'] = $data['args']['title'];
 			$this->data['duration'] = $data['args']['length_seconds'];
 			$this->data['viewCount'] = $data['args']['view_count'];
-			$this->data['author'] = $data['args']['author'];
 			$this->data['channelID'] = $data['args']['ucid'];
 
 			$subtitle = json_decode($data['args']['player_response'], true);
@@ -143,7 +141,19 @@ namespace ScarletsFiction\LittleYoutube{
 				file_put_contents($this->settings['temporaryDirectory'].'/error.log', $data);
 				return false;
 			}
-			else $panelDetails = $panelDetails[1];
+
+			$userData = explode('photo.jpg', $panelDetails[0]);
+			$userData[0] = explode('"', $userData[0]);
+			$userData[0] = $userData[0][count($userData[0])-1].'photo.jpg';
+			$userData[1] = explode('alt="', $panelDetails[0])[1];
+			$userData[1] = explode('"', $userData[1])[0];
+			$this->data['userData'] = [
+				"name"=>$userData[1],
+				"image"=>$userData[0]
+			];
+			$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $panelDetails[0])[1])[0])[0])[0];
+
+			$panelDetails = $panelDetails[1];
 			$panelDetails = explode("<button", $panelDetails)[0];
 
 			$uploaded = explode('"watch-time-text">', $panelDetails)[1];
@@ -222,15 +232,15 @@ namespace ScarletsFiction\LittleYoutube{
 			return "//www.youtube.com/embed/".$this->data['videoID']."?rel=0";
 		}
 
-		public function parseSubtitle($idOrXML = false){
+		public function parseSubtitle($idOrXML=false, $asSRT=false){
 			if(is_string($idOrXML)){
 				$data = $idOrXML;
-			} else{
+			}else{
 				if(!isset($this->data['subtitle'][$idOrXML])){
 					$this->error = "No subtitle found";
 					return false;
 				}
-				$data = \ScarletsFiction\WebApi::loadURL($this->data['subtitle'][$idOrXML]['url']);
+				$data = \ScarletsFiction\WebApi::loadURL($this->data['subtitle'][$idOrXML]['url'])['content'];
 			}
 			if(!$data) return false;
 
@@ -244,6 +254,22 @@ namespace ScarletsFiction\LittleYoutube{
 				$value['time'] = explode('"', explode('start="', $value['when'])[1])[0];
 				$value['duration'] = explode('"', explode('dur="', $value['when'])[1])[0];
 				unset($value['when']);
+			}
+			if($asSRT){
+				$srt = '';
+				for($i=0; $i<count($data); $i++){
+					$srt .= "\n".($i+1)."\n";
+					$srt .= gmdate("H:i:s,", $data[$i]['time']).floor(fmod($data[$i]['time'], 1)*1000);
+					$sum = $data[$i]['time']+$data[$i]['duration'];
+					$srt .= ' --> '.gmdate("H:i:s,", $sum).floor(fmod($sum, 1)*1000);
+					$srt .= "\n".$data[$i]['text'];
+					if($data[$i+1]['time']<$sum){
+						$srt .= ' '.$data[$i+1]['text'];
+						$i++;
+					}
+					$srt .= "\n";
+				}
+				return $srt;
 			}
 			return $data;
 		}
@@ -488,9 +514,14 @@ namespace ScarletsFiction\LittleYoutube{
 			$value = explode('/playlist?list=', $value);
 
 			$this->data['channelID'] = explode('/', explode('?', explode('"', explode('/channel/', $value[0])[1])[0])[0])[0];
-			$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $value[0])[1])[0])[0])[0];
-			unset($value[0]); $value = array_values($value);
+			$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $value[0])[1])[0])[0])[0];//src="
+			$userData = explode('>', explode('appbar-nav-avatar', $value[0])[1]);
+			$this->data['userData'] = [
+				"name"=>explode('"', explode('title="', $userData)[1])[0],
+				"image"=>explode('"', explode('src="', $userData)[1])[0],
+			];
 
+			unset($value[0]); $value = array_values($value);
 			foreach ($value as &$value_) {
 				$value_ = explode('</a>', $value_)[0];
 				$value_ = explode('>', $value_);
@@ -536,11 +567,20 @@ namespace ScarletsFiction\LittleYoutube{
 		public function processDetails(){
 			$data = \ScarletsFiction\WebApi::loadURL('https://www.youtube.com/playlist?list='.$this->data['playlistID'])['content'];
 			$data = explode('data-title="', $data);
+
+			$this->data['channelID'] = explode('/', explode('?', explode('"', explode('/channel/', $data[0])[1])[0])[0])[0];
+			$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $data[0])[1])[0])[0])[0];//src="
+			$userData = explode('>', explode('appbar-nav-avatar', $data[0])[1]);
+			$this->data['userData'] = [
+				"name"=>explode('"', explode('title="', $userData)[1])[0],
+				"image"=>explode('"', explode('src="', $userData)[1])[0],
+			];
+
 			unset($data[0]); $data = array_values($data);
 			foreach ($data as &$value){
 				$title = explode('" ', $value)[0];
-				$playlistID = explode('data-video-id="', $value);
-				$playlistID = explode('"', $playlistID[1])[0];
+				$playlistID = explode('watch?v=', $value);
+				$playlistID = explode('&amp;', $playlistID[1])[0];
 				$value = ["title"=>$title, "videoID"=>$playlistID];
 			}
 			$this->data['videos'] = $data;

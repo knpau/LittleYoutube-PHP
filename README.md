@@ -47,12 +47,11 @@ LittleYoutube is here to help you
 
 Add LittleYoutube to composer.json configuration file.
 ```
-$ composer install scarletsfiction/littleyoutube
+$ composer require scarletsfiction/littleyoutube
 ```
 
-Or
+And update it
 ```
-$ composer require scarletsfiction/littleyoutube
 $ composer update
 ```
 
@@ -148,9 +147,10 @@ echo('<iframe width="480" height="360" src="'.$LittleYoutube->getEmbedLink().'" 
 ```
 
 #### Parse subtitle
-> $video->parseSubtitle(args);
+> $video->parseSubtitle(args, asSRT);
 > 
 >  args: subtitle index or xml string
+>  asSRT: return as srt format
 >  note: if you pass subtitle index, ProcessDetails must be enabled/called
 
 ```

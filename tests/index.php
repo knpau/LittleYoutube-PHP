@@ -9,7 +9,7 @@
 
 	$video = $LittleYoutube->video("https://www.youtube.com/watch?v=R1RonAlzvZk");
 	//$video->getImage();
-	//print_r($video->data);
+	//print_r($video->parseSubtitle(0, true));
 
 	$channel = $LittleYoutube->channel("https://www.youtube.com/user/yifartofmagic/");
 	//print_r($channel->data);
