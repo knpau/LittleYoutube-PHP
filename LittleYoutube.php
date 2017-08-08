@@ -515,7 +515,7 @@ namespace ScarletsFiction\LittleYoutube{
 
 			$this->data['channelID'] = explode('/', explode('?', explode('"', explode('/channel/', $value[0])[1])[0])[0])[0];
 			$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $value[0])[1])[0])[0])[0];//src="
-			$userData = explode('>', explode('appbar-nav-avatar', $value[0])[1]);
+			$userData = explode('>', explode('appbar-nav-avatar', $value[0])[1])[0];
 			$this->data['userData'] = [
 				"name"=>explode('"', explode('title="', $userData)[1])[0],
 				"image"=>explode('"', explode('src="', $userData)[1])[0],
@@ -570,7 +570,7 @@ namespace ScarletsFiction\LittleYoutube{
 
 			$this->data['channelID'] = explode('/', explode('?', explode('"', explode('/channel/', $data[0])[1])[0])[0])[0];
 			$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $data[0])[1])[0])[0])[0];//src="
-			$userData = explode('>', explode('appbar-nav-avatar', $data[0])[1]);
+			$userData = explode('>', explode('appbar-nav-avatar', $data[0])[1])[0];
 			$this->data['userData'] = [
 				"name"=>explode('"', explode('title="', $userData)[1])[0],
 				"image"=>explode('"', explode('src="', $userData)[1])[0],
