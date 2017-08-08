@@ -2,7 +2,7 @@
 namespace ScarletsFiction{
 	class LittleYoutube
 	{
-		public $version = "0.6.1";
+		public $version = "0.7.2";
 		public $error = false;
 		public $settings;
 
@@ -57,17 +57,11 @@ namespace ScarletsFiction{
 		public function playlist($url, $processDetail=true)
 		{
 			$id = $url;
-			if(strpos($id, '/user/')!==false){
-				$id = explode('/user/', $id)[1];
-				$id = explode('/', $id)[0];
-				$id = explode('?', $id)[0];
-				$id = ['userID', explode('?', $id)[0]];
+			if(strpos($id, 'list=')!==false){
+				$id = explode('list=', $id)[1];
+				$id = ['userID', explode('&', $id)[0]];
 			}
-			else if(strpos($id, 'channel_id=')!==false){
-				$id = explode('channel_id=', $id)[1];
-				$id = ['channelID', explode('&', $id)[0]];
-			}
-			else $id = ['channelID', $id];
+			else $id = ['playlistID', $id];
 			return new \ScarletsFiction\LittleYoutube\Playlist($this->settings, $this->error, $id, $processDetail);
 		}
 	}
@@ -540,11 +534,20 @@ namespace ScarletsFiction\LittleYoutube{
 	class Playlist extends LittleYoutubeInfo
 	{
 		public function processDetails(){
-			
+			$data = \ScarletsFiction\WebApi::loadURL('https://www.youtube.com/playlist?list='.$this->data['playlistID'])['content'];
+			$data = explode('data-title="', $data);
+			unset($data[0]); $data = array_values($data);
+			foreach ($data as &$value){
+				$title = explode('" ', $value)[0];
+				$playlistID = explode('data-video-id="', $value);
+				$playlistID = explode('"', $playlistID[1])[0];
+				$value = ["title"=>$title, "videoID"=>$playlistID];
+			}
+			$this->data['videos'] = $data;
 		}
 
 		protected function setID($set){
-			$this->data = ["playlistID"=>$set];
+			$this->data = ["playlistID"=>$set[1]];
 		}
 	}
 }

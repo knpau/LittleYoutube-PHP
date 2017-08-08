@@ -86,10 +86,10 @@ Available options
 Return video class
 
 #### Get video map
-> $video->info['video'];
->>  Not available when ProcessDetails = false
-
->> You can also call $video->processDetails() to refresh data
+> $video->data['video'];
+> 
+>  Not available when ProcessDetails = false
+> You can also call $video->processDetails() to refresh data
 
 Return Associative Arrays
 ```
@@ -146,9 +146,9 @@ echo('<iframe width="480" height="360" src="'.$LittleYoutube->getEmbedLink().'" 
 
 #### Parse subtitle
 > $video->parseSubtitle(args);
->>  args: subtitle index or xml string
-
->>  note: if you pass subtitle index, ProcessDetails must be enabled/called
+> 
+>  args: subtitle index or xml string
+>  note: if you pass subtitle index, ProcessDetails must be enabled/called
 
 ```
 [
@@ -196,7 +196,8 @@ https://www.youtube.com/feeds/videos.xml?channel_id=...
 
 #### Get channel videos
 > $channel->data['videos'];
->>  Not available when ProcessDetails = false
+> 
+>  Not available when ProcessDetails = false
 
 Return Indexed Array of current channel videos
 ```
@@ -210,7 +211,8 @@ Return Indexed Array of current channel videos
 
 #### Get channel playlists
 > $channel->data['playlists'];
->>  Not available when ProcessDetails = false
+> 
+>  Not available when ProcessDetails = false
 
 Return Indexed Array of current channel data
 ```
@@ -233,6 +235,35 @@ Return Associative Array of current channel data
 
     //When ProcessDetail was enabled/called
     "playlists", "videos"
+}
+```
+
+### Init youtube playlist
+> $playlist = $LittleYoutube->playlist("videoURLHere", ProcessDetails=true);
+
+Return playlist class
+
+#### Get playlist map
+> $playlist ->data['playlist'];
+> 
+>  Not available when ProcessDetails = false
+>  You can also call $video->processDetails() to refresh data
+
+Return string
+```
+errorMsg //Failed to do stuff
+```
+
+#### Get playlist data
+> $playlist->data;
+
+Return Associative Array of current channel data
+```
+{
+    "playlist ID",
+
+    //When ProcessDetail was enabled/called
+    "videos"
 }
 ```
 

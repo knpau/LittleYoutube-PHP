@@ -5,7 +5,7 @@
 	use ScarletsFiction\LittleYoutube;
 
 	$LittleYoutube = new LittleYoutube();
-	$LittleYoutube->settings['autoProcessVideoDetails'] = true;
+	$LittleYoutube->settings['loadVideoSize'] = true;
 
 	$video = $LittleYoutube->video("https://www.youtube.com/watch?v=R1RonAlzvZk");
 	//$video->getImage();
@@ -14,8 +14,8 @@
 	$channel = $LittleYoutube->channel("https://www.youtube.com/user/yifartofmagic/");
 	//print_r($channel->data);
 
-	//$playlise = $LittleYoutube->playlist("https://www.youtube.com/user/yifartofmagic/");
-	//print_r($channel->data);
+	$playlist = $LittleYoutube->playlist("https://www.youtube.com/watch?v=692TvKPDaEU&list=UUa-iuHGLTxvkOChd4jnybiA");
+	//print_r($playlist->data);
 
 	if($LittleYoutube->error) echo('Error: '.$LittleYoutube->error);
 	else echo("All test script running");
