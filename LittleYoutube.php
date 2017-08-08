@@ -13,10 +13,8 @@ namespace ScarletsFiction{
 				"signatureDebug"=>false,
 				"loadVideoSize"=>false
 			];
-			$this->info = [];
-			$this->data = [];
 			if($options){
-				$this->settings = array_replace($this->settings,$options);
+				$this->settings = array_replace($this->settings, $options);
 			}
 		}
 
@@ -36,24 +34,24 @@ namespace ScarletsFiction{
 				$id = explode('youtu.be/', $id)[1];
 				$id = explode('?', $id)[0];
 			}
-			$this->info['videoID'] = $id;
 			return new \ScarletsFiction\LittleYoutube\Video($this->settings, $this->error, $id, $processDetail);
 		}
 
-		public function channel($url)
+		public function channel($url, $processDetail=true)
 		{
 			$id = $url;
 			if(strpos($id, '/user/')!==false){
 				$id = explode('/user/', $id)[1];
 				$id = explode('/', $id)[0];
 				$id = explode('?', $id)[0];
+				$id = ['userID', explode('?', $id)[0]];
 			}
-			else if(strpos($id, 'youtu.be/')!==false){
-				$id = explode('youtu.be/', $id)[1];
-				$id = explode('?', $id)[0];
+			else if(strpos($id, 'channel_id=')!==false){
+				$id = explode('channel_id=', $id)[1];
+				$id = ['channelID', explode('&', $id)[0]];
 			}
-			$this->info['channelID'] = $id;
-			return new \ScarletsFiction\LittleYoutube\Channel($this->settings, $this->error, $id);
+			else $id = ['channelID', $id];
+			return new \ScarletsFiction\LittleYoutube\Channel($this->settings, $this->error, $id, $processDetail);
 		}
 	}
 }
@@ -63,16 +61,16 @@ namespace ScarletsFiction\LittleYoutube{
 		private $error;
 		public $info;
 		private $data;
-		private $settings;
+		protected $settings;
 
-		public function __construct(&$settings, &$error, $id, $processDetail=false)
+		public function __construct(&$settings, &$error, $id, $processDetail=true)
 		{
 			$this->setID($id);
 			$this->data = [];
-			$this->settings = $settings;
+			$this->settings = &$settings;
 			$this->error = &$error;
 			if($processDetail)
-				$this->processDetail();
+				$this->processDetails();
 		}
 	}
 
@@ -86,23 +84,13 @@ namespace ScarletsFiction\LittleYoutube{
 				return false;
 			}
 
-			$data = \ScarletsFiction\WebApi::loadURL('https://www.youtube.com/watch?spf=navigate&v='.$id)['content'];
-			$this->parseVideoDetail($data);
-			$data = explode('"swfcfg":', $data)[1];
-
-			//Sometime error here, this is to avoid parse the whole json 
-			$data = explode('}}},', $data);
-			if(count($data)==2) $data = $data[0].'}';
-			else $data = explode('}},"', $data[0])[0].'}}';
-
-			$data_ = json_decode($data, true);
-			if(json_last_error() !== JSON_ERROR_NONE){
-				file_put_contents($this->settings['temporaryDirectory']."/error.json", $data);
-				$this->error = 'JSON: '.json_last_error_msg();
-				return false;
-			}
-			$data = $data_;
-			unset($data_); unset($data['args']['fflags']);
+			$data = \ScarletsFiction\WebApi::loadURL('https://www.youtube.com/watch?v='.$id)['content'];
+			$data = explode('ytplayer.config = ', $data)[1];
+			$data = explode(';ytplayer.load', $data);
+			$this->parseVideoDetail($data[1]);
+			$data = $data[0];
+			$data = json_decode($data, true);
+			unset($data['args']['fflags']);
 
 			$this->getPlayerScript($data['assets']['js']);
 
@@ -138,26 +126,23 @@ namespace ScarletsFiction\LittleYoutube{
 		}
 
 		private function parseVideoDetail($data){
-			$panelDetails = explode('action-panel-details', $data)[1];
-			$panelDetails = explode('"button', $panelDetails)[0];
+			$panelDetails = explode('"action-panel-details"', $data)[1];
+			$panelDetails = explode("<button", $panelDetails)[0];
 
-			$uploaded = explode('\u003c\/strong', $panelDetails)[0];
-			$uploaded = explode('Published on ', $uploaded)[1];
+			$uploaded = explode('"watch-time-text">', $panelDetails)[1];
+			$uploaded = explode('</strong>', $uploaded)[0];
 			$this->info['uploaded'] = $uploaded;
 
-			$description = explode('\u003c\/p', $panelDetails)[0].'\u003c\/p\u003e';
-			$description = '["\u003cp'.explode('\u003cp', $description)[1].'\\\u003e"]';
-			$description = json_decode($description, true)[0];
+			$description = explode('"eow-description"', $panelDetails)[1];
 			$description = str_replace(['<br />', '<br/>', '<br>'], "\n", $description);
-			$description = strip_tags($description);
-			$this->info['description'] = str_replace('\u003e', '', $description);
+			$description = strip_tags('<p'.explode('</p>', $description)[0]);
+			$this->info['description'] = $description;
 			
-			$metatag = '["\u003c \"'.explode('watch-extras-section', $panelDetails)[1];
-			$metatag = explode('yt-uix-expander-head', $metatag)[0].'\u003e"]';
-			$metatag = json_decode(str_replace('  ', '', $metatag), true)[0];
+			$metatag = trim('<'.explode('"watch-extras-section"', $panelDetails)[1]);
+			$metatag = str_replace('  ', '', $metatag);
 			$metatag = explode("<h4 class=\"title\">\n", $metatag);
-			$metatag = array_values($metatag);
 			unset($metatag[0]);
+			$metatag = array_values($metatag);
 			foreach ($metatag as &$value) {
 				$value = str_replace("\n\n\n", ': ', trim(strip_tags($value)));
 			}
@@ -168,10 +153,9 @@ namespace ScarletsFiction\LittleYoutube{
 			$likeDetails = explode('like-button-unclicked', $likeDetails);
 			unset($likeDetails[0]);
 			foreach ($likeDetails as &$value) {
-				$value = explode('button-content\"\u003e', $value)[1];
-				$value = explode('\u003c\/span', $value)[0];
+				$value = explode('button-content">', $value)[1];
+				$value = explode('</span>', $value)[0];
 			}
-			
 			$this->info['like'] = str_replace('.', '', $likeDetails[1]);
 			$this->info['dislike'] = str_replace('.', '', $likeDetails[2]);
 		}
@@ -273,8 +257,8 @@ namespace ScarletsFiction\LittleYoutube{
 			$playerID = explode('/', $playerURL)[0];
 		
 			if(!file_exists($this->settings['temporaryDirectory']."/$playerID")) {
-				$decipherScript = \ScarletsFiction\WebApi::loadURL("https://youtube.com/yts/jsbin/player-$playerURL");
-				file_put_contents($this->settings['temporaryDirectory']."/$playerID", $decipherScript);
+				//$decipherScript = \ScarletsFiction\WebApi::loadURL("https://youtube.com/yts/jsbin/player-$playerURL");
+				//file_put_contents($this->settings['temporaryDirectory']."/$playerID", $decipherScript);
 			}
 
 			$this->info['playerID'] = $playerID;
@@ -469,8 +453,27 @@ namespace ScarletsFiction\LittleYoutube{
 
 	class Channel extends LittleYoutubeInfo
 	{
-		public function processDetail(){
+		public function processDetails(){
+			$data = [];
+			if(isset($this->info['channelID'])){
+				$data[0] = "https://www.youtube.com/channel/".$this->info['channelID']."/playlists";
+				//$data[1] = "https://www.youtube.com/channel/".$this->info['channelID']."/videos?sort=dd&view=0&shelf_id=2";
+			} else if(isset($this->info['userID'])){
+				$data[0] = "https://www.youtube.com/user/".$this->info['userID']."/playlists";
+				//$data[1] = "https://www.youtube.com/user/".$this->info['userID']."/videos?sort=dd&view=0&shelf_id=2";
+			} else {
+				$this->error = "No Channel ID found";
+				return false;
+			}
 
+			foreach ($data as &$value) {
+				$value = \ScarletsFiction\WebApi::loadURL($value)['content'];
+				$value = '["\u'.explode('"content":"\u', $value)[1];
+				$value = explode('","', $value)[0].'"]';
+				$value = json_decode($value, true)[0];
+				print_r($value);exit();
+				$value = json_decode($value, true);
+			}
 		}
 
 		public function getChannelRSS($load=false, $parse=false){
@@ -485,13 +488,13 @@ namespace ScarletsFiction\LittleYoutube{
 		}
 
 		protected function setID($set){
-			$this->info = ["channelID"=>$set];
+			$this->info[$set[0]] = $set[1];
 		}
 	}
 
 	class Playlist extends LittleYoutubeInfo
 	{
-		public function processDetail(){
+		public function processDetails(){
 			
 		}
 
