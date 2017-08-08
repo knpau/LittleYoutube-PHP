@@ -2,7 +2,6 @@
 namespace ScarletsFiction{
 	class LittleYoutube
 	{
-		public $version = "0.7.2";
 		public $error = false;
 		public $settings;
 
@@ -120,18 +119,22 @@ namespace ScarletsFiction\LittleYoutube{
 					$value = ['url'=>$value['baseUrl'], 'lang'=>$value['languageCode']];
 				}
 			} else $this->data['subtitle'] = false;
-			
-			$streamMap = [[],[]];
-			if(isset($data['args']['url_encoded_fmt_stream_map'])){
-				$streamMap[0] = explode(',', $data['args']['url_encoded_fmt_stream_map']);
-				if(count($streamMap[0])) $streamMap[0] =  $this->streamMapToArray($streamMap[0]);
+			if(isset($data['args']['livestream'])&&$data['args']['livestream']){
+				$this->data['video'] = ["stream"=>$data['args']['hlsvp']];
+				$this->data['uploaded'] = "Live Now!";
 			}
-			if(isset($data['args']['adaptive_fmts'])){
-				$streamMap[1] = explode(',', $data['args']['adaptive_fmts']);
-				if(count($streamMap[1])) $streamMap[1] =  $this->streamMapToArray($streamMap[1]);
+			else{
+				$streamMap = [[],[]];
+				if(isset($data['args']['url_encoded_fmt_stream_map'])){
+					$streamMap[0] = explode(',', $data['args']['url_encoded_fmt_stream_map']);
+					if(count($streamMap[0])) $streamMap[0] =  $this->streamMapToArray($streamMap[0]);
+				}
+				if(isset($data['args']['adaptive_fmts'])){
+					$streamMap[1] = explode(',', $data['args']['adaptive_fmts']);
+					if(count($streamMap[1])) $streamMap[1] =  $this->streamMapToArray($streamMap[1]);
+				}
+				$this->data['video'] = ["encoded"=>$streamMap[0], "adaptive"=>$streamMap[1]];
 			}
-
-			$this->data['video'] = ["encoded"=>$streamMap[0], "adaptive"=>$streamMap[1]];
 		}
 
 		private function parseVideoDetail($data){
@@ -156,9 +159,11 @@ namespace ScarletsFiction\LittleYoutube{
 			$panelDetails = $panelDetails[1];
 			$panelDetails = explode("<button", $panelDetails)[0];
 
-			$uploaded = explode('"watch-time-text">', $panelDetails)[1];
-			$uploaded = explode('</strong>', $uploaded)[0];
-			$this->data['uploaded'] = $uploaded;
+			$uploaded = explode('"watch-time-text">', $panelDetails);
+			if(count($uploaded)!=1){
+				$uploaded = explode('</strong>', $uploaded[1])[0];
+				$this->data['uploaded'] = $uploaded;
+			}
 
 			$description = explode('"eow-description"', $panelDetails)[1];
 			$description = str_replace(['<br />', '<br/>', '<br>'], "\n", $description);
@@ -220,6 +225,10 @@ namespace ScarletsFiction\LittleYoutube{
 				}
 		
 				$map['url'] = $map_info['url'].$signature.'&title='.urlencode($this->data['title']);
+				if($this->settings['loadVideoSize']){
+					$size = \ScarletsFiction\WebApi::urlContentSize($map['url']);
+					$map['size'] = \ScarletsFiction\FileApi::fileSize($size);
+				}
 			}
 			return $streamMap;
 		}
@@ -644,14 +653,14 @@ namespace ScarletsFiction{
 			return $data;
 		}
 		public static function urlContentSize($url){
-			$dat = loadURL($url, ['headerOnly'=>true]);
-			if($dat['headers']) {
-				$size = 0;
-				if(preg_match("/Content-Length: (\d+)/", $data, $matches)){
+			$data = self::loadURL($url, ['headerOnly'=>true]);
+			$size = 0;
+			if($data['headers']) {
+				if(preg_match("/Content-Length: (\d+)/", $data['headers'], $matches)){
 		    	  $size = (int)$matches[1];
 		    	}
-				return $size;
 		    }
+			return $size;
 		}
 	}
 
@@ -659,7 +668,7 @@ namespace ScarletsFiction{
 		public static function fileSize($bytes, $decimals=2) {
 		  	$sz = 'BKMGTP';
 		  	$factor = floor((strlen($bytes) - 1) / 3);
-		  	return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$sz[$factor];
+		  	return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)).' '.@$sz[$factor].($factor!=0?'B':'ytes');
 		}
 	}
 }

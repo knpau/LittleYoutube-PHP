@@ -125,7 +125,10 @@ Return Associative Arrays
             "size" //When loadVideoSize was enabled
         },
         ...
-    ]
+    ],
+
+    //If it's a live stream, then return m3u8 url only
+    "stream"
 }
 ```
 
