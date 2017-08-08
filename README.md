@@ -20,12 +20,13 @@ LittleYoutube is here to help you
  - [Sample Usage](#sample-usage)
  - [Documentation](#documentation)
    - [Initialize LittleYoutube](#initialize-littleyoutube)
-   - [Set youtube video URL](#set-youtube-video-url)
-   - [Get video image preview](#get-video-image-preview])
+   - [Init youtube video](#init-youtube-video)
+      - [Get video map](#get-video-map)
+      - [Get video image preview](#get-video-image-preview])
+      - [Get embed link](#get-embed-link)
+      - [Parse subtitle](#parse-subtitle)
+      - [Get info](#get-info)
    - [Get last error message](#get-last-error-message)
-   - [Get embed link](#get-embed-link)
-   - [Get info](#get-info)
-   - [Parse subtitle](#parse-subtitle)
    - [Change settings dynamically](#change-settings-dynamically)
  - [Contribution](#contribution)
  - [License](#license)
@@ -81,6 +82,7 @@ Return video class
 #### Get video map
 > $video->info['video'];
 >>  Not available when ProcessDetails = false
+
 >> You can also call $video->processDetails() to refresh data
 
 Return Associative Arrays
@@ -139,6 +141,7 @@ echo('<iframe width="480" height="360" src="'.$LittleYoutube->getEmbedLink().'" 
 #### Parse subtitle
 > $video->parseSubtitle(args);
 >>  args: subtitle index or xml string
+
 >>  note: if you pass subtitle index, ProcessDetails must be enabled/called
 
 ```
