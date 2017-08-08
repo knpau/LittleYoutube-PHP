@@ -59,22 +59,25 @@ namespace ScarletsFiction{
 }
 
 namespace ScarletsFiction\LittleYoutube{
-	class Video
-	{
+	class LittleYoutubeInfo{
 		private $error;
 		public $info;
 		private $data;
 		private $settings;
 
-		public function __construct(&$settings, &$error, $id, $processDetail)
+		public function __construct(&$settings, &$error, $id, $processDetail=false)
 		{
-			$this->info = ["videoID"=>$id];
+			$this->setID($id);
 			$this->data = [];
 			$this->settings = $settings;
 			$this->error = &$error;
-			if($processDetail) $this->processDetails();
+			if($processDetail)
+				$this->processDetail();
 		}
+	}
 
+	class Video extends LittleYoutubeInfo
+	{
 		public function processDetails()
 		{
 			if(isset($this->info['videoID'])) $id = $this->info['videoID'];
@@ -458,23 +461,16 @@ namespace ScarletsFiction\LittleYoutube{
 
 			return $processSignature;
 		}
+
+		protected function setID($set){
+			$this->info = ["videoID"=>$set];
+		}
 	}
 
-	class Channel
+	class Channel extends LittleYoutubeInfo
 	{
-		private $error;
-		public $info;
-		private $data;
-		private $settings;
+		public function processDetail(){
 
-		public function __construct(&$settings, &$error, $id)
-		{
-			$this->info = ["channelID"=>$id];
-			$this->data = [];
-			$this->settings = $settings;
-			$this->error = &$error;
-			if($this->settings['autoProcessVideoDetails'])
-				$this->getVideoLink();
 		}
 
 		public function getChannelRSS($load=false, $parse=false){
@@ -487,10 +483,21 @@ namespace ScarletsFiction\LittleYoutube{
 				} else return $data;
 			}
 		}
+
+		protected function setID($set){
+			$this->info = ["channelID"=>$set];
+		}
 	}
-	class Playlist
+
+	class Playlist extends LittleYoutubeInfo
 	{
-		
+		public function processDetail(){
+			
+		}
+
+		protected function setID($set){
+			$this->info = ["playlistID"=>$set];
+		}
 	}
 }
 
