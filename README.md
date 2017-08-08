@@ -47,7 +47,7 @@ LittleYoutube is here to help you
 
 Add LittleYoutube to composer.json configuration file.
 ```
-$ composer require scarletsfiction/littleyoutube
+$ composer require scarletsfiction/littleyoutube:dev-master
 ```
 
 And update it
