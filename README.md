@@ -22,10 +22,10 @@ LittleYoutube is here to help you
    - [Initialize LittleYoutube](#initialize-littleyoutube)
    - [Video Class](#video-class)
       - [Get video map](#get-video-map)
-      - [Get video image preview](#get-video-image-preview])
+      - [Get video image preview](#get-video-image-preview)
       - [Get embed link](#get-embed-link)
       - [Parse subtitle](#parse-subtitle)
-      - [Get video data](#get-info)
+      - [Get video data](#get-video-info)
    - [Channel Class](#channel-class)
       - [Get channel RSS URL](#get-channel-rss-url)
       - [Get channel videos](#get-channel-videos)
@@ -90,8 +90,8 @@ Return video class
 #### Get video map
 > $video->data['video'];
 > 
->  Not available when ProcessDetails = false
-> You can also call $video->processDetails() to refresh data
+>  * Not available when ProcessDetails = false
+>  * You can also call $video->processDetails() to refresh data
 
 Return Associative Arrays
 ```
@@ -152,9 +152,9 @@ echo('<iframe width="480" height="360" src="'.$LittleYoutube->getEmbedLink().'" 
 #### Parse subtitle
 > $video->parseSubtitle(args, asSRT);
 > 
->  args: subtitle index or xml string
->  asSRT: return as srt format
->  note: if you pass subtitle index, ProcessDetails must be enabled/called
+>  * args: subtitle index or xml string
+>  * asSRT: return as srt format
+>  * note: if you pass subtitle index, ProcessDetails must be enabled/called
 
 ```
 [
@@ -203,7 +203,7 @@ https://www.youtube.com/feeds/videos.xml?channel_id=...
 #### Get channel videos
 > $channel->data['videos'];
 > 
->  Not available when ProcessDetails = false
+> Not available when ProcessDetails = false
 
 Return Indexed Array of current channel videos
 ```
@@ -218,7 +218,7 @@ Return Indexed Array of current channel videos
 #### Get channel playlists
 > $channel->data['playlists'];
 > 
->  Not available when ProcessDetails = false
+> Not available when ProcessDetails = false
 
 Return Indexed Array of current channel data
 ```
@@ -252,8 +252,8 @@ Return playlist class
 #### Get playlist map
 > $playlist ->data['playlist'];
 > 
->  Not available when ProcessDetails = false
->  You can also call $video->processDetails() to refresh data
+>  * Not available when ProcessDetails = false
+>  * You can also call $video->processDetails() to refresh data
 
 Return string
 ```
