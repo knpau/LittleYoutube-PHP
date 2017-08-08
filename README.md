@@ -20,17 +20,20 @@ LittleYoutube is here to help you
  - [Sample Usage](#sample-usage)
  - [Documentation](#documentation)
    - [Initialize LittleYoutube](#initialize-littleyoutube)
-   - [Init youtube video](#init-youtube-video)
+   - [Video Class](#video-class)
       - [Get video map](#get-video-map)
       - [Get video image preview](#get-video-image-preview])
       - [Get embed link](#get-embed-link)
       - [Parse subtitle](#parse-subtitle)
       - [Get video data](#get-info)
-   - [Init youtube channel](#init-youtube-channel)
-      - [Get channel RSS URL](#get-channel-rss-url) 
-      - [Get channel videos](#get-channel-videos) 
-      - [Get channel playlists](#get-channel-playlists) 
+   - [Channel Class](#channel-class)
+      - [Get channel RSS URL](#get-channel-rss-url)
+      - [Get channel videos](#get-channel-videos)
+      - [Get channel playlists](#get-channel-playlists)
       - [Get channel data](#get-channel-data)
+   - [Playlist Class](#playlist-class)
+      - [Get playlist map](#get-playlist-map)
+      - [Get playlist data](#get-playlist-data)
    - [Get last error message](#get-last-error-message)
    - [Change settings dynamically](#change-settings-dynamically)
  - [Contribution](#contribution)
@@ -80,7 +83,7 @@ Available options
 }
 ```
 
-### Init youtube video
+### Video Class
 > $video = $LittleYoutube->video("videoURLHere", ProcessDetails=true);
 
 Return video class
@@ -181,7 +184,7 @@ Return Associative Array of current video data
 }
 ```
 
-### Init youtube channel
+### Channel Class
 > $channel = $LittleYoutube->channel("videoURLHere", ProcessDetails=true);
 
 Return channel class
@@ -238,7 +241,7 @@ Return Associative Array of current channel data
 }
 ```
 
-### Init youtube playlist
+### Playlist Class
 > $playlist = $LittleYoutube->playlist("videoURLHere", ProcessDetails=true);
 
 Return playlist class
