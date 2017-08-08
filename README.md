@@ -25,7 +25,12 @@ LittleYoutube is here to help you
       - [Get video image preview](#get-video-image-preview])
       - [Get embed link](#get-embed-link)
       - [Parse subtitle](#parse-subtitle)
-      - [Get info](#get-info)
+      - [Get video data](#get-info)
+   - [Init youtube channel](#init-youtube-channel)
+      - [Get channel RSS URL](#get-channel-rss-url) 
+      - [Get channel videos](#get-channel-videos) 
+      - [Get channel playlists](#get-channel-playlists) 
+      - [Get channel data](#get-channel-data)
    - [Get last error message](#get-last-error-message)
    - [Change settings dynamically](#change-settings-dynamically)
  - [Contribution](#contribution)
@@ -58,7 +63,7 @@ $ composer update
 
     $LittleYoutube = new LittleYoutube();
     $LittleYoutube->video("https://www.youtube.com/watch?v=xQomv1gqmb4");
-    echo("Video ID:".$LittleYoutube->info['videoID']."\n");
+    echo("Video ID:".$LittleYoutube->data['videoID']."\n");
     print_r($LittleYoutube->getVideoImages());
 ```
 
@@ -76,7 +81,7 @@ Available options
 ```
 
 ### Init youtube video
-> $video = $LittleYoutube->videoID("videoURLHere", ProcessDetails=true);
+> $video = $LittleYoutube->video("videoURLHere", ProcessDetails=true);
 
 Return video class
 
@@ -156,22 +161,78 @@ echo('<iframe width="480" height="360" src="'.$LittleYoutube->getEmbedLink().'" 
 ]
 ```
 
-#### Get info
-> $video->info;
+#### Get video data
+> $video->data;
 
-Return Associative Array of current video info
+Return Associative Array of current video data
 ```
-{ "videoID",
+{
+    "videoID",
 
-//When ProcessDetail was enabled/called
-"playerID", "title", "duration", "viewCount", "like", "dislike", "author", "video" "subtitle", "uploaded", "description", "metatag", "channelID",
+    //When ProcessDetail was enabled/called
+    "playerID", "title", "duration", "viewCount", "like", "dislike", "author", "video" "subtitle", "uploaded", "description", "metatag", "channelID",
 
-//When signatureDebug was enabled
+    //When signatureDebug was enabled
     "signature"=>{
         "playerID", //Log for current playerID 
         "log" //Last video log
     },
     ...
+}
+```
+
+### Init youtube channel
+> $channel = $LittleYoutube->channel("videoURLHere", ProcessDetails=true);
+
+Return channel class
+
+#### Get Channel RSS URL
+> $channel ->getChannelRSS();
+
+Return string
+```
+https://www.youtube.com/feeds/videos.xml?channel_id=...
+```
+
+#### Get channel videos
+> $channel->data['videos'];
+>>  Not available when ProcessDetails = false
+
+Return Indexed Array of current channel videos
+```
+[
+    [0]=>{
+        "title", "duration", "videoID"
+     },
+     ...
+]
+```
+
+#### Get channel playlists
+> $channel->data['playlists'];
+>>  Not available when ProcessDetails = false
+
+Return Indexed Array of current channel data
+```
+[
+    [0]=>{
+        "title", "playlistID"
+    },
+    ...
+]
+```
+
+#### Get channel data
+> $channel->data;
+
+Return Associative Array of current channel data
+```
+{
+    //Depends on input URL
+    "channelID", "userID",
+
+    //When ProcessDetail was enabled/called
+    "playlists", "videos"
 }
 ```
 

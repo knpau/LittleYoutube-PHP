@@ -6,9 +6,16 @@
 
 	$LittleYoutube = new LittleYoutube();
 	$LittleYoutube->settings['autoProcessVideoDetails'] = true;
-	$video = $LittleYoutube->video("https://www.youtube.com/watch?v=R1RonAlzvZk", false);
+
+	$video = $LittleYoutube->video("https://www.youtube.com/watch?v=R1RonAlzvZk");
 	//$video->getImage();
-	//print_r($video->info);
+	//print_r($video->data);
+
+	$channel = $LittleYoutube->channel("https://www.youtube.com/user/yifartofmagic/");
+	//print_r($channel->data);
+
+	//$playlise = $LittleYoutube->playlist("https://www.youtube.com/user/yifartofmagic/");
+	//print_r($channel->data);
 
 	if($LittleYoutube->error) echo('Error: '.$LittleYoutube->error);
 	else echo("All test script running");
