@@ -6,9 +6,9 @@
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
          processIsolation="false"
-         stopOnFailure="false"
-         syntaxCheck="false"
-         stopOnError="false"
+         stopOnFailure="true"
+         syntaxCheck="true"
+         stopOnError="true"
          stopOnIncomplete="false"
          stopOnSkipped="false">
     <testsuites>
