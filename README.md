@@ -1,7 +1,7 @@
 <a href="https://www.patreon.com/stefansarya"><img src="http://anisics.stream/assets/img/support-badge.png" height="20"></a>
 [![Build Status](https://travis-ci.org/StefansArya/LittleYoutube-PHP.svg?branch=master)](https://travis-ci.org/StefansArya/LittleYoutube-PHP)
 [![Latest Version](https://img.shields.io/badge/build-stable-brightgreen.svg)](https://packagist.org/packages/scarletsfiction/littleyoutube)
-[![Software License](https://img.shields.io/badge/license-GPL3.0-lightgrey.svg)](LICENSE)
+[![Software License](https://img.shields.io/badge/license-GPL3.0-brightgreen.svg)](LICENSE)
 
 LittleYoutube
 ==========
