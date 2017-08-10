@@ -19,21 +19,21 @@ LittleYoutube is here to help you
  - [Download via composer](#download-via-composer)
  - [Sample Usage](#sample-usage)
  - [Documentation](#documentation)
-   - [Initialize LittleYoutube](#initialize-littleyoutube)
+   - [LittleYoutube Options](#littleyoutube-options)
    - [Video Class](#video-class)
-      - [Get video map](#get-video-map)
       - [Get video image preview](#get-video-image-preview)
       - [Get embed link](#get-embed-link)
       - [Parse subtitle](#parse-subtitle)
-      - [Get video data](#get-video-info)
+      - [Get video data](#get-video-data)
    - [Channel Class](#channel-class)
-      - [Get channel RSS URL](#get-channel-rss-url)
-      - [Get channel videos](#get-channel-videos)
-      - [Get channel playlists](#get-channel-playlists)
+      - [Get RSS URL](#get-rss-url)
       - [Get channel data](#get-channel-data)
    - [Playlist Class](#playlist-class)
-      - [Get playlist map](#get-playlist-map)
       - [Get playlist data](#get-playlist-data)
+   - [Search Class](#playlist-class)
+      - [Get search data](#get-search-data)
+      - [Next result](#next-result)
+      - [Previous result](#previous-result)
    - [Get last error message](#get-last-error-message)
    - [Change settings dynamically](#change-settings-dynamically)
  - [Contribution](#contribution)
@@ -47,7 +47,7 @@ LittleYoutube is here to help you
 
 Add LittleYoutube to composer.json configuration file.
 ```
-$ composer require scarletsfiction/littleyoutube:dev-master
+$ composer require scarletsfiction/littleyoutube
 ```
 
 And update it
@@ -63,77 +63,34 @@ $ composer update
 
     use ScarletsFiction\LittleYoutube;
 
-    $LittleYoutube = new LittleYoutube();
-    $LittleYoutube->video("https://www.youtube.com/watch?v=xQomv1gqmb4");
-    echo("Video ID:".$LittleYoutube->data['videoID']."\n");
-    print_r($LittleYoutube->getVideoImages());
+    $video = LittleYoutube::video("https://www.youtube.com/watch?v=xQomv1gqmb4");
+    echo("Video ID:".$video->data['videoID']."\n");
+    print_r($video->getVideoImages());
 ```
 
 ## Documentation
-### Initialize LittleYoutube
-> $LittleYoutube = new LittleYoutube(options);
+### LittleYoutube Options
 
 Available options
 ```
 {
     "temporaryDirectory"=>realpath(__DIR__."/temp"),
     "signatureDebug"=>false,
-    "loadVideoSize"=>false
+    "loadVideoSize"=>false,
+    "processDetail"=>true
 }
 ```
 
 ### Video Class
-> $video = $LittleYoutube->video("videoURLHere", ProcessDetails=true);
+> $video = LittleYoutube::video("videoURLHere", options);
+> 
+> //Reinit video class
+> $video->init("videoURLHere");
 
 Return video class
 
-#### Get video map
-> $video->data['video'];
-> 
->  * Not available when ProcessDetails = false
->  * You can also call $video->processDetails() to refresh data
-
-Return Associative Arrays
-```
-{
-    "encoded"=>[
-        [0] => {
-            "itag",
-            "type"=>[
-                [0] => Media    //video
-                [1] => Format   //mp4
-                [2] => Encoder  //avc1.64001F, mp4a.40.2
-            ],
-            "expire",  //timestamp
-            "quality", //hd720, medium, small
-            "url",
-            "size" //When loadVideoSize was enabled
-        },
-        ...
-    ],
-    "adaptive"=>[
-        [0] => {
-            "itag",
-            "type"=>[
-                [0] => Media    //video
-                [1] => Format   //mp4
-                [2] => Encoder  //avc1.4d401f
-            ],
-            "expire",  //timestamp
-            "quality", //1080p, 720p, 192k, 144k
-            "url",
-            "size" //When loadVideoSize was enabled
-        },
-        ...
-    ],
-
-    //If it's a live stream, then return m3u8 url only
-    "stream"
-}
-```
-
 #### Get video image preview
-> $video->getVideoImages();
+> $video->getImage();
 
 Return Indexed Array
 ```
@@ -146,7 +103,7 @@ Return Indexed Array
 ```
 // Usually we will wrap it with iframe
 
-echo('<iframe width="480" height="360" src="'.$LittleYoutube->getEmbedLink().'" frameborder="0" allowfullscreen></iframe>');
+echo('<iframe width="480" height="360" src="'.$video->getEmbedLink().'" frameborder="0" allowfullscreen></iframe>');
 ```
 
 #### Parse subtitle
@@ -169,6 +126,8 @@ echo('<iframe width="480" height="360" src="'.$LittleYoutube->getEmbedLink().'" 
 
 #### Get video data
 > $video->data;
+> 
+>  * You can also call $video->processDetails() to refresh data
 
 Return Associative Array of current video data
 ```
@@ -176,7 +135,44 @@ Return Associative Array of current video data
     "videoID",
 
     //When ProcessDetail was enabled/called
-    "playerID", "title", "duration", "viewCount", "like", "dislike", "author", "video" "subtitle", "uploaded", "description", "metatag", "channelID",
+    "playerID", "title", "duration", "viewCount", "like", "dislike", "author", "subtitle", "uploaded", "description", "metatag", "channelID",
+
+    // Not available when ProcessDetails = false
+    video=>{
+        "encoded"=>[
+            [0] => {
+                "itag",
+                "type"=>[
+                    [0] => Media    //video
+                    [1] => Format   //mp4
+                    [2] => Encoder  //avc1.64001F, mp4a.40.2
+                ],
+                "expire",  //timestamp
+                "quality", //hd720, medium, small
+                "url",
+                "size" //When loadVideoSize was enabled
+            },
+            ...
+        ],
+        "adaptive"=>[
+            [0] => {
+                "itag",
+                "type"=>[
+                    [0] => Media    //video
+                    [1] => Format   //mp4
+                    [2] => Encoder  //avc1.4d401f
+                ],
+                "expire",  //timestamp
+                "quality", //1080p, 720p, 192k, 144k
+                "url",
+                "size" //When loadVideoSize was enabled
+            },
+            ...
+        ],
+
+        //If it's a live stream, then return m3u8 url only
+        "stream"
+    }
 
     //When signatureDebug was enabled
     "signature"=>{
@@ -188,93 +184,122 @@ Return Associative Array of current video data
 ```
 
 ### Channel Class
-> $channel = $LittleYoutube->channel("videoURLHere", ProcessDetails=true);
+> $channel = LittleYoutube::channel("channelURLHere", options);
+> 
+> //Reinit channel class
+> $channel->init("channelURLHere");
 
 Return channel class
 
-#### Get Channel RSS URL
-> $channel ->getChannelRSS();
+#### Get RSS URL
+> $channel->getChannelRSS();
 
 Return string
 ```
 https://www.youtube.com/feeds/videos.xml?channel_id=...
 ```
 
-#### Get channel videos
-> $channel->data['videos'];
-> 
-> Not available when ProcessDetails = false
-
-Return Indexed Array of current channel videos
-```
-[
-    [0]=>{
-        "title", "duration", "videoID"
-     },
-     ...
-]
-```
-
-#### Get channel playlists
-> $channel->data['playlists'];
-> 
-> Not available when ProcessDetails = false
-
-Return Indexed Array of current channel data
-```
-[
-    [0]=>{
-        "title", "playlistID"
-    },
-    ...
-]
-```
-
 #### Get channel data
 > $channel->data;
+> 
+>  * You can also call $channel->processDetails() to refresh data
 
 Return Associative Array of current channel data
 ```
 {
-    //Depends on input URL
+    //Some data will available when ProcessDetail was enabled/called
     "channelID", "userID",
 
-    //When ProcessDetail was enabled/called
-    "playlists", "videos"
+    "playlists"=>[
+        [0]=>{
+            "title", "playlistID"
+        },
+        ...
+    ],
+    "videos"=> [
+        [0]=>{
+            "title", "duration", "videoID"
+         },
+         ...
+    ]
 }
 ```
 
 ### Playlist Class
-> $playlist = $LittleYoutube->playlist("videoURLHere", ProcessDetails=true);
+> $playlist = LittleYoutube::playlist("playlistURLHere", options);
+> 
+> //Reinit playlist class
+> $playlist->init("playlistURLHere");
 
 Return playlist class
 
-#### Get playlist map
-> $playlist ->data['playlist'];
+#### Get playlist data
+> $playlist->data;
 > 
->  * Not available when ProcessDetails = false
->  * You can also call $video->processDetails() to refresh data
+>  * You can also call $playlist->processDetails() to refresh data
 
 Return string
 ```
-errorMsg //Failed to do stuff
-```
-
-#### Get playlist data
-> $playlist->data;
-
-Return Associative Array of current channel data
-```
 {
-    "playlist ID",
+  //Some data will available when ProcessDetail was enabled/called
+  "playlistID", "channelID", "userID",
 
-    //When ProcessDetail was enabled/called
-    "videos"
+  "userData"=>{
+    "name", image
+  },
+
+  "videos"=>[
+    [0]=>{
+      "title", "videoID"
+    }, 
+    ...
+  ]
 }
 ```
 
+### Search Class
+> $search = LittleYoutube::search("searchQueryHere", options);
+> 
+> //Reinit search class
+> $search->init("searchQueryHere");
+
+Return search class
+
+#### Get search data
+> $search->data;
+> 
+>  * You can also call $search->processDetails() to refresh data
+
+Return string
+```
+{
+  "query",
+
+  // Not available when ProcessDetails = false
+  "video"=>[
+    [0]=>{
+      "videoID", "title", "duration", "userID", "userName", "uploaded", "views"
+    }
+  ],
+
+  //When available
+  "next", "previous"
+}
+```
+
+### Next result
+> $search->next();
+
+This will add result from the next page to current data
+
+### Previous result
+> $search->previous();
+
+This will add result from the previous page to current data
+> Actually this is useless might
+
 ### Get last error message
-> $LittleYoutube->error;
+> $classes->error;
 
 Return string
 ```
@@ -282,8 +307,8 @@ errorMsg //Failed to do stuff
 ```
 
 ### Change settings dynamically
-You can also change the settings after initialize LittleYoutube
-> $LittleYoutube->settings[options] = value;
+You can also change the settings after initialize LittleYoutube class
+> $classes->settings[options] = value;
 
 ## Contribution
 

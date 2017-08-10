@@ -1,23 +1,36 @@
 <?php
-namespace ScarletsFiction{
-	class LittleYoutube
-	{
-		public $error = false;
-		public $settings;
+namespace ScarletsFiction\LittleYoutube{
+	class LittleYoutubeInfo{
+		public $error;
+		public $data;
+		public $settings = false;
+		protected $classData;
 
-		public function __construct($options = null)
+		protected function resetInit()
 		{
-			$this->settings = [
-				"temporaryDirectory"=>realpath(__DIR__."/temp"),
-				"signatureDebug"=>false,
-				"loadVideoSize"=>false
-			];
-			if($options){
+			$this->classData = [];
+			$this->data = [];
+			if(!$this->settings)
+				$this->settings = [
+					"temporaryDirectory"=>realpath(__DIR__."/temp"),
+					"signatureDebug"=>false,
+					"loadVideoSize"=>false,
+					"processDetail"=>true
+				];
+		}
+	}
+
+	class Video extends LittleYoutubeInfo
+	{
+		public function __construct($id, $options)
+		{
+			if($options)
 				$this->settings = array_replace($this->settings, $options);
-			}
+			$this->resetInit();
+			$this->init($id);
 		}
 
-		public function video($url, $processDetail=true)
+		public function init($url)
 		{
 			$id = $url;
 			if(strpos($id, '/watch?v=')!==false){
@@ -33,64 +46,11 @@ namespace ScarletsFiction{
 				$id = explode('youtu.be/', $id)[1];
 				$id = explode('?', $id)[0];
 			}
-			return new \ScarletsFiction\LittleYoutube\Video($this->settings, $this->error, $id, $processDetail);
-		}
-
-		public function channel($url, $processDetail=true)
-		{
-			$id = $url;
-			if(strpos($id, '/user/')!==false){
-				$id = explode('/user/', $id)[1];
-				$id = explode('/', $id)[0];
-				$id = explode('?', $id)[0];
-				$id = ['userID', explode('?', $id)[0]];
-			}
-			else if(strpos($id, 'channel_id=')!==false){
-				$id = explode('channel_id=', $id)[1];
-				$id = ['channelID', explode('&', $id)[0]];
-			}
-			else $id = ['channelID', $id];
-			return new \ScarletsFiction\LittleYoutube\Channel($this->settings, $this->error, $id, $processDetail);
-		}
-
-		public function playlist($url, $processDetail=true)
-		{
-			$id = $url;
-			if(strpos($id, 'list=')!==false){
-				$id = explode('list=', $id)[1];
-				$id = ['userID', explode('&', $id)[0]];
-			}
-			else $id = ['playlistID', $id];
-			return new \ScarletsFiction\LittleYoutube\Playlist($this->settings, $this->error, $id, $processDetail);
-		}
-
-		public function search($query)
-		{
-			return new \ScarletsFiction\LittleYoutube\Search($this->settings, $this->error, $query);
-		}
-	}
-}
-
-namespace ScarletsFiction\LittleYoutube{
-	class LittleYoutubeInfo{
-		private $error;
-		public $data;
-		private $privateData;
-		protected $settings;
-
-		public function __construct(&$settings, &$error, $id, $processDetail=true)
-		{
-			$this->setID($id);
-			$this->privateData = [];
-			$this->settings = &$settings;
-			$this->error = &$error;
-			if($processDetail)
+			$this->data['videoID'] = $id;
+			if($this->settings["processDetail"])
 				$this->processDetails();
 		}
-	}
 
-	class Video extends LittleYoutubeInfo
-	{
 		public function processDetails()
 		{
 			if(isset($this->data['videoID'])) $id = $this->data['videoID'];
@@ -394,14 +354,14 @@ namespace ScarletsFiction\LittleYoutube{
 			$decipherPatterns = str_replace($deciphersObjectVar.'.', '', $decipherPatterns);
 			$decipherPatterns = str_replace('(a,', '->(', $decipherPatterns);
 			$decipherPatterns = explode(';', explode('){', $decipherPatterns)[1]);
-			$this->privateData['signature']['patterns'] = $decipherPatterns;
+			$this->classData['signature']['patterns'] = $decipherPatterns;
 		
 			// Convert deciphers to object
 			$deciphers = [];
 			foreach ($decipher as &$function) {
 				$deciphers[explode(':function', $function)[0]] = explode('){', $function)[1];
 			}
-			$this->privateData['signature']['deciphers'] = $deciphers;
+			$this->classData['signature']['deciphers'] = $deciphers;
 
 			return true;
 		}
@@ -413,12 +373,12 @@ namespace ScarletsFiction\LittleYoutube{
 			}
 			else $this->getSignatureParser();
 
-			if(!isset($this->privateData['signature']['patterns'])){
+			if(!isset($this->classData['signature']['patterns'])){
 				$this->error = "Signature patterns not found";
 				return false;
 			}
-			$patterns = $this->privateData['signature']['patterns'];
-			$deciphers = $this->privateData['signature']['deciphers'];
+			$patterns = $this->classData['signature']['patterns'];
+			$deciphers = $this->classData['signature']['deciphers'];
 
 			if($this->settings['signatureDebug']){
 				$this->data['signature']['log'] = "==== Retrieved deciphers ====\n\n";
@@ -502,14 +462,36 @@ namespace ScarletsFiction\LittleYoutube{
 
 			return $processSignature;
 		}
-
-		protected function setID($set){
-			$this->data = ["videoID"=>$set];
-		}
 	}
 
 	class Channel extends LittleYoutubeInfo
 	{
+		public function __construct($id, $options)
+		{
+			if($options)
+				$this->settings = array_replace($this->settings, $options);
+			$this->resetInit();
+			$this->init($id);
+		}
+
+		public function init($url)
+		{
+			$id = $url;
+			if(strpos($id, '/user/')!==false){
+				$id = explode('/user/', $id)[1];
+				$id = explode('/', $id)[0];
+				$id = explode('?', $id)[0];
+				$this->data['userID'] = explode('?', $id)[0];
+			}
+			else if(strpos($id, 'channel_id=')!==false){
+				$id = explode('channel_id=', $id)[1];
+				$this->data['channelID'] = explode('&', $id)[0];
+			}
+			else $this->data['channelID'] = $id;
+			if($this->settings["processDetail"])
+				$this->processDetails();
+		}
+
 		public function processDetails(){
 			$data = [];
 			if(isset($this->data['channelID'])){
@@ -570,20 +552,36 @@ namespace ScarletsFiction\LittleYoutube{
 				} else return $data;
 			}
 		}
-
-		protected function setID($set){
-			$this->data[$set[0]] = $set[1];
-		}
 	}
 
 	class Playlist extends LittleYoutubeInfo
 	{
+		public function __construct($id, $options)
+		{
+			if($options)
+				$this->settings = array_replace($this->settings, $options);
+			$this->resetInit();
+			$this->init($id);
+		}
+
+		public function init($url)
+		{
+			$id = $url;
+			if(strpos($id, 'list=')!==false){
+				$id = explode('list=', $id)[1];
+				$this->data['playlistID'] = explode('&', $id)[0];
+			}
+			else $this->data['playlistID'] = $id;
+			if($this->settings["processDetail"])
+				$this->processDetails();
+		}
+
 		public function processDetails(){
 			$data = \ScarletsFiction\WebApi::loadURL('https://www.youtube.com/playlist?list='.$this->data['playlistID'])['content'];
 			$data = explode('data-title="', $data);
 
 			$this->data['channelID'] = explode('/', explode('?', explode('"', explode('/channel/', $data[0])[1])[0])[0])[0];
-			$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $data[0])[1])[0])[0])[0];//src="
+			$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $data[0])[1])[0])[0])[0];
 			$userData = explode('>', explode('appbar-nav-avatar', $data[0])[1])[0];
 			$this->data['userData'] = [
 				"name"=>explode('"', explode('title="', $userData)[1])[0],
@@ -599,14 +597,25 @@ namespace ScarletsFiction\LittleYoutube{
 			}
 			$this->data['videos'] = $data;
 		}
-
-		protected function setID($set){
-			$this->data = ["playlistID"=>$set[1]];
-		}
 	}
 
-	class Search extends LittleYoutubeInfo{
-		public $coun = 0;
+	class Search extends LittleYoutubeInfo
+	{
+		public function __construct($id, $options)
+		{
+			if($options)
+				$this->settings = array_replace($this->settings, $options);
+			$this->resetInit();
+			$this->init($id);
+		}
+
+		public function init($query)
+		{
+			$this->data['query'] = $query;
+			if($this->settings["processDetail"])
+				$this->processDetails();
+		}
+
 		public function processDetails(){
 			$url = "https://www.youtube.com";
 			if(isset($this->data['queryNext']))
@@ -621,14 +630,18 @@ namespace ScarletsFiction\LittleYoutube{
 			$dataCount = count($data);
 
 			$this->data['videos'] = [];
+			unset($this->data['next']);
+			unset($this->data['previous']);
 			for($i = 0; $i<$dataCount; $i++){
 				if($i==$dataCount-1){
-					$next = explode("<a", explode(">Next", $data[$i])[0]);
-					$next = $next[count($next)-1];
-					$next = explode('"', explode("/results?q=", $next)[0])[1];
-					$next = html_entity_decode($next);
-					$this->data['next'] = $next;
-					if(strpos($data[$i], 'Previous<')){
+					if(strpos($data[$i], '>Next')){
+						$next = explode("<a", explode(">Next", $data[$i])[0]);
+						$next = $next[count($next)-1];
+						$next = explode('"', explode("/results?q=", $next)[0])[1];
+						$next = html_entity_decode($next);
+						$this->data['next'] = $next;
+					}
+					else if(strpos($data[$i], 'Previous<')){
 						$prev = explode("<a", explode("Previous<", $data[$i])[0]);
 						$prev = $prev[count($prev)-1];
 						$prev = explode('"', explode("/results?q=", $prev)[0])[1];
@@ -639,8 +652,10 @@ namespace ScarletsFiction\LittleYoutube{
 				if(strpos($data[$i], '/playlist?list=')!==false){
 					continue;
 				}
-				$videoID = explode('/watch?v=', $data[$i])[1];
-				$videoID = explode('"', $videoID)[0];
+				$videoID = explode('/watch?v=', $data[$i]);
+				if(count($videoID)==1) continue; //Not a video
+				if(strpos($videoID[1], 'list=')!==false) continue; //It's playlist
+				$videoID = explode('"', $videoID[1])[0];
 
 				$title = explode('title="', $data[$i])[1];
 				$title = explode('"', $title)[0];
@@ -651,9 +666,14 @@ namespace ScarletsFiction\LittleYoutube{
 				$user = explode('/user/', $data[$i]);
 				if(count($user)==1)
 					$user = explode('/channel/', $data[$i]);
-				$user = explode('</a>', $user[1])[0];
-				$userID = explode('"', $user)[0];
-				$userName = explode('>', $user)[1];
+				if(count($user)!=1){
+					$user = explode('</a>', $user[1])[0];
+					$userID = explode('"', $user)[0];
+					$userName = explode('>', $user)[1];
+				} else {
+					$userID = "";
+					$userName = "";
+				}
 
 				$meta = explode('yt-lockup-meta-info', $data[$i])[1];
 				$meta = explode('</ul>', $meta)[0];
@@ -676,14 +696,25 @@ namespace ScarletsFiction\LittleYoutube{
 			$this->processDetails();
 			unset($this->data['queryPrevious']);
 		}
-
-		protected function setID($set){
-			$this->data = ["query"=>$set];
-		}
 	}
 }
 
 namespace ScarletsFiction{
+	class LittleYoutube{
+		public static function video($id, $options=false){
+			return new LittleYoutube\Video($id, $options);
+		}
+		public static function channel($id, $options=false){
+			return new LittleYoutube\Channel($id, $options);
+		}
+		public static function playlist($id, $options=false){
+			return new LittleYoutube\Playlist($id, $options);
+		}
+		public static function search($id, $options=false){
+			return new LittleYoutube\Search($id, $options);
+		}
+	}
+
 	class WebApi
 	{
 		public static function loadURL($url, $options=false){
