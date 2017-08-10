@@ -625,7 +625,7 @@ namespace ScarletsFiction{
 				}
 			}
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-			curl_setopt($ch, CURLOPT_ENCODING, "gzip, deflate");
+			curl_setopt($ch, CURLOPT_ENCODING, "gzip");
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -669,6 +669,56 @@ namespace ScarletsFiction{
 		  	$sz = 'BKMGTP';
 		  	$factor = floor((strlen($bytes) - 1) / 3);
 		  	return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)).' '.@$sz[$factor].($factor!=0?'B':'ytes');
+		}
+	}
+
+	class Stream{
+		//ToDo - paralel download
+
+		//type = "application/octet-stream"
+		public static function localFile($name, $path, $type=false, $downloadSpeed=1024){
+			$size = filesize($path);
+			$fopen = fopen($path, 'r+');
+			if(!$fopen) return false;
+
+			header("Accept-Ranges: bytes");
+			if(isset($_SERVER['HTTP_RANGE'])){
+			    $ranges = array_map('intval', explode('-', substr($_SERVER['HTTP_RANGE'], 6)));
+			    if(!$ranges[1]) $ranges[1] = $size - 1;
+			 
+			    header('HTTP/1.1 206 Partial Content');
+			    header('Content-Length: '.($ranges[1] - $ranges[0]));
+			    header('Content-Range: bytes $ranges[0]-$ranges[1]/$size');
+
+				fseek($fioh, $ranges[0]);
+			}else{
+				fseek($fioh, 0);
+			}
+			
+			self::buildResponse($name, $type, $size);
+
+			while(!feof($fioh)) {
+			    print(fread($fioh, $downloadSpeed/4));
+			    flush();
+			    @ob_flush();
+			}
+			fclose($fioh);
+		}
+
+		public static function variableFile($name, &$string, $type=false, $downloadSpeed=1024){
+			$size = strlen($string);
+			if(!$size) return false;
+			self::buildResponse($name, $type, $size);
+			print_r($string);
+			exit;
+		}
+
+		private static function buildResponse($name, $type, $size){
+			ob_get_clean();
+			if(!$type) $type = "application/octet-stream";
+			header('Content-type: '.$type);
+			header('Content-Disposition: attachment; filename="'.$name.'"');
+			header('Content-Length: '.$size);
 		}
 	}
 }
