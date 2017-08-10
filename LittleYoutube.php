@@ -63,6 +63,11 @@ namespace ScarletsFiction{
 			else $id = ['playlistID', $id];
 			return new \ScarletsFiction\LittleYoutube\Playlist($this->settings, $this->error, $id, $processDetail);
 		}
+
+		public function search($query)
+		{
+			return new \ScarletsFiction\LittleYoutube\Search($this->settings, $this->error, $query);
+		}
 	}
 }
 
@@ -597,6 +602,83 @@ namespace ScarletsFiction\LittleYoutube{
 
 		protected function setID($set){
 			$this->data = ["playlistID"=>$set[1]];
+		}
+	}
+
+	class Search extends LittleYoutubeInfo{
+		public $coun = 0;
+		public function processDetails(){
+			$url = "https://www.youtube.com";
+			if(isset($this->data['queryNext']))
+				$url .= $this->data['next'];
+			else if(isset($this->data['queryPrevious']))
+				$url .= $this->data['previous'];
+			else
+				$url .= '/results?search_query='.urlencode($this->data['query']);
+			$data = \ScarletsFiction\WebApi::loadURL($url)['content'];
+			$data = explode('yt-lockup-title', $data);
+			unset($data[0]); $data = array_values($data);
+			$dataCount = count($data);
+
+			$this->data['videos'] = [];
+			for($i = 0; $i<$dataCount; $i++){
+				if($i==$dataCount-1){
+					$next = explode("<a", explode(">Next", $data[$i])[0]);
+					$next = $next[count($next)-1];
+					$next = explode('"', explode("/results?q=", $next)[0])[1];
+					$next = html_entity_decode($next);
+					$this->data['next'] = $next;
+					if(strpos($data[$i], 'Previous<')){
+						$prev = explode("<a", explode("Previous<", $data[$i])[0]);
+						$prev = $prev[count($prev)-1];
+						$prev = explode('"', explode("/results?q=", $prev)[0])[1];
+						$prev = html_entity_decode($prev);
+						$this->data['previous'] = $prev;
+					}
+				}
+				if(strpos($data[$i], '/playlist?list=')!==false){
+					continue;
+				}
+				$videoID = explode('/watch?v=', $data[$i])[1];
+				$videoID = explode('"', $videoID)[0];
+
+				$title = explode('title="', $data[$i])[1];
+				$title = explode('"', $title)[0];
+
+				$duration = explode('Duration: ', $data[$i])[1];
+				$duration = explode('.</span>', $duration)[0];
+
+				$user = explode('/user/', $data[$i]);
+				if(count($user)==1)
+					$user = explode('/channel/', $data[$i]);
+				$user = explode('</a>', $user[1])[0];
+				$userID = explode('"', $user)[0];
+				$userName = explode('>', $user)[1];
+
+				$meta = explode('yt-lockup-meta-info', $data[$i])[1];
+				$meta = explode('</ul>', $meta)[0];
+				$meta = explode('<li>', $meta);
+				$uploaded = explode('</li>', $meta[1])[0];
+				$views = explode('</li>', $meta[2])[0];
+
+				$this->data['videos'][] = ['videoID'=>$videoID, 'title'=>$title, 'duration'=>$duration, 'userID'=>$userID, 'userName'=>$userName, 'uploaded'=>$uploaded, 'views'=>$views];
+			}
+		}
+
+		public function next(){
+			$this->data['queryNext'] = 1;
+			$this->processDetails();
+			unset($this->data['queryNext']);
+		}
+
+		public function previous(){
+			$this->data['queryPrevious'] = 1;
+			$this->processDetails();
+			unset($this->data['queryPrevious']);
+		}
+
+		protected function setID($set){
+			$this->data = ["query"=>$set];
 		}
 	}
 }
