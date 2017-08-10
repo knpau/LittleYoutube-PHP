@@ -6,4 +6,6 @@ matrix:
         - php: 5.6
 sudo: false
 dist: trusty
+install:
+- composer install
 script: phpunit --configuration phpunit.xml --coverage-text
