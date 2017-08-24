@@ -24,9 +24,9 @@ namespace ScarletsFiction\LittleYoutube{
 	{
 		public function __construct($id, $options)
 		{
+			$this->resetInit();
 			if($options)
 				$this->settings = array_replace($this->settings, $options);
-			$this->resetInit();
 			$this->init($id);
 		}
 
@@ -468,9 +468,9 @@ namespace ScarletsFiction\LittleYoutube{
 	{
 		public function __construct($id, $options)
 		{
+			$this->resetInit();
 			if($options)
 				$this->settings = array_replace($this->settings, $options);
-			$this->resetInit();
 			$this->init($id);
 		}
 
@@ -558,9 +558,9 @@ namespace ScarletsFiction\LittleYoutube{
 	{
 		public function __construct($id, $options)
 		{
+			$this->resetInit();
 			if($options)
 				$this->settings = array_replace($this->settings, $options);
-			$this->resetInit();
 			$this->init($id);
 		}
 
@@ -603,9 +603,9 @@ namespace ScarletsFiction\LittleYoutube{
 	{
 		public function __construct($id, $options)
 		{
+			$this->resetInit();
 			if($options)
 				$this->settings = array_replace($this->settings, $options);
-			$this->resetInit();
 			$this->init($id);
 		}
 
@@ -660,8 +660,16 @@ namespace ScarletsFiction\LittleYoutube{
 				$title = explode('title="', $data[$i])[1];
 				$title = explode('"', $title)[0];
 
-				$duration = explode('Duration: ', $data[$i])[1];
-				$duration = explode('.</span>', $duration)[0];
+				$duration = explode('Duration: ', $data[$i]);
+				if(count($duration)==1){
+					$duration = explode('video-time', $data[$i])[1];
+					$duration = explode('<', $duration)[0];
+					$duration = explode('>', $duration)[1];
+				}
+				else {
+					$duration = $duration[1];
+					$duration = explode('.</span>', $duration)[0];
+				}
 
 				$user = explode('/user/', $data[$i]);
 				if(count($user)==1)
@@ -670,6 +678,7 @@ namespace ScarletsFiction\LittleYoutube{
 					$user = explode('</a>', $user[1])[0];
 					$userID = explode('"', $user)[0];
 					$userName = explode('>', $user)[1];
+					$userName = explode('<span', $userName)[0];
 				} else {
 					$userID = "";
 					$userName = "";
@@ -678,10 +687,11 @@ namespace ScarletsFiction\LittleYoutube{
 				$meta = explode('yt-lockup-meta-info', $data[$i])[1];
 				$meta = explode('</ul>', $meta)[0];
 				$meta = explode('<li>', $meta);
+				if(count($meta)==3)
+					$views = explode('</li>', $meta[2])[0];
 				$uploaded = explode('</li>', $meta[1])[0];
-				$views = explode('</li>', $meta[2])[0];
 
-				$this->data['videos'][] = ['videoID'=>$videoID, 'title'=>$title, 'duration'=>$duration, 'userID'=>$userID, 'userName'=>$userName, 'uploaded'=>$uploaded, 'views'=>$views];
+				$this->data['videos'][] = ['videoID'=>$videoID, 'title'=>$title, 'duration'=>$duration, 'userID'=>$userID, 'user'=>$userName, 'uploaded'=>$uploaded, 'views'=>$views];
 			}
 		}
 
