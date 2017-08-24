@@ -6,6 +6,14 @@ namespace ScarletsFiction\LittleYoutube{
 		public $settings = false;
 		protected $classData;
 
+		public function __construct($id, $options)
+		{
+			$this->resetInit();
+			if($options)
+				$this->settings = array_replace($this->settings, $options);
+			$this->init($id);
+		}
+
 		protected function resetInit()
 		{
 			$this->classData = [];
@@ -22,14 +30,6 @@ namespace ScarletsFiction\LittleYoutube{
 
 	class Video extends LittleYoutubeInfo
 	{
-		public function __construct($id, $options)
-		{
-			$this->resetInit();
-			if($options)
-				$this->settings = array_replace($this->settings, $options);
-			$this->init($id);
-		}
-
 		public function init($url)
 		{
 			$id = $url;
@@ -466,14 +466,6 @@ namespace ScarletsFiction\LittleYoutube{
 
 	class Channel extends LittleYoutubeInfo
 	{
-		public function __construct($id, $options)
-		{
-			$this->resetInit();
-			if($options)
-				$this->settings = array_replace($this->settings, $options);
-			$this->init($id);
-		}
-
 		public function init($url)
 		{
 			$id = $url;
@@ -556,14 +548,6 @@ namespace ScarletsFiction\LittleYoutube{
 
 	class Playlist extends LittleYoutubeInfo
 	{
-		public function __construct($id, $options)
-		{
-			$this->resetInit();
-			if($options)
-				$this->settings = array_replace($this->settings, $options);
-			$this->init($id);
-		}
-
 		public function init($url)
 		{
 			$id = $url;
@@ -601,14 +585,6 @@ namespace ScarletsFiction\LittleYoutube{
 
 	class Search extends LittleYoutubeInfo
 	{
-		public function __construct($id, $options)
-		{
-			$this->resetInit();
-			if($options)
-				$this->settings = array_replace($this->settings, $options);
-			$this->init($id);
-		}
-
 		public function init($query)
 		{
 			$this->data['query'] = $query;
