@@ -500,9 +500,34 @@ namespace ScarletsFiction\LittleYoutube{
 			// Playlists
 			$value = \ScarletsFiction\WebApi::loadURL($data[0])['content'];
 			$value = explode('/playlist?list=', $value);
+			if(count($value)==1){
+				$value = explode('ytInitialData"] = ', $value[0])[1];
+				$value = explode('};', $value)[0].'}';
+				$value = json_decode($value, true);
+				$user = $value['header']['c4TabbedHeaderRenderer'];
+				$this->data['channelID'] = $user['channelId'];
+				$this->data['userID'] = $user['navigationEndpoint']['webNavigationEndpointData']['url'];
+				$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $this->data['userID'])[1])[0])[0])[0];
+				$this->data['userData'] = [
+					"name"=>$user['title'],
+					"image"=>$user['avatar']['thumbnails'][0]['url']
+				];
+
+				$value = $value['contents']['twoColumnBrowseResultsRenderer']['tabs'][2]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['gridRenderer'];
+
+				$playlists = [];
+				foreach ($value['items'] as $value_){
+					$values = $value_['gridPlaylistRenderer'];
+					$playlists[] = ["title"=>$values['title']['simpleText'], "playlistID"=>$values['playlistId']];
+				}
+				$this->data['playlists'] = $playlists;
+				$this->data['videos'] = [];
+				return;
+			}
 
 			$this->data['channelID'] = explode('/', explode('?', explode('"', explode('/channel/', $value[0])[1])[0])[0])[0];
 			$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $value[0])[1])[0])[0])[0];//src="
+
 			$userData = explode('>', explode('appbar-nav-avatar', $value[0])[1])[0];
 			$this->data['userData'] = [
 				"name"=>explode('"', explode('title="', $userData)[1])[0],
