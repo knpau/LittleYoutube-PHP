@@ -515,12 +515,10 @@ namespace ScarletsFiction\LittleYoutube{
 
 				$value = $value['contents']['twoColumnBrowseResultsRenderer']['tabs'][2]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['gridRenderer'];
 
-				$playlists = [];
 				foreach ($value['items'] as $value_){
 					$values = $value_['gridPlaylistRenderer'];
-					$playlists[] = ["title"=>$values['title']['simpleText'], "playlistID"=>$values['playlistId']];
+					$this->data['playlists'][] = ["title"=>$values['title']['simpleText'], "playlistID"=>$values['playlistId']];
 				}
-				$this->data['playlists'] = $playlists;
 				$this->data['videos'] = [];
 				return;
 			}
@@ -588,6 +586,28 @@ namespace ScarletsFiction\LittleYoutube{
 		public function processDetails(){
 			$data = \ScarletsFiction\WebApi::loadURL('https://www.youtube.com/playlist?list='.$this->data['playlistID'])['content'];
 			$data = explode('data-title="', $data);
+			if(count($data)==1){
+				$data = explode('ytInitialData"] = ', $data[0])[1];
+				$data = explode('};', $data)[0].'}';
+				$data = json_decode($data, true);
+
+				$user = $data['sidebar']['playlistSidebarRenderer']['items'][1]['playlistSidebarSecondaryInfoRenderer']['videoOwner']['videoOwnerRenderer'];
+				$this->data['userID'] = $user['title']['runs'][0]['navigationEndpoint']['browseEndpoint']['canonicalBaseUrl'];
+				$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $this->data['userID'])[1])[0])[0])[0];
+				$this->data['userData'] = [
+					"name"=>$user['title']['runs'][0]['text'],
+					"image"=>$user['thumbnail']['thumbnails'][0]['url']
+				];
+
+				$data = $data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['playlistVideoListRenderer'];
+
+				$playlists = [];
+				foreach ($data['contents'] as $value_){
+					$values = $value_['playlistVideoRenderer'];
+					$this->data['videos'][] = ["title"=>$values['title']['accessibility']['accessibilityData']['label'], "videoID"=>$values['videoId']];
+				}
+				return;
+			}
 
 			$this->data['channelID'] = explode('/', explode('?', explode('"', explode('/channel/', $data[0])[1])[0])[0])[0];
 			$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $data[0])[1])[0])[0])[0];
