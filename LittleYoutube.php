@@ -600,12 +600,32 @@ namespace ScarletsFiction\LittleYoutube{
 				$url .= $this->data['previous'];
 			else
 				$url .= '/results?search_query='.urlencode($this->data['query']);
+			$this->data['videos'] = [];
+
 			$data = \ScarletsFiction\WebApi::loadURL($url)['content'];
 			$data = explode('yt-lockup-title', $data);
+			if(count($data)==1){
+				$data = explode('ytInitialData"] = ', $data[0])[1];
+				$data = explode('};', $data)[0].'}';
+				$data = json_decode($data, true);
+				$data = $data['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer'];
+
+				foreach ($data['contents'] as $value){
+					if(!isset($value['videoRenderer'])) continue;
+					$dat = $value['videoRenderer'];
+					$videoID = $dat['videoId'];
+					$title = $dat['title']['simpleText'];
+					$duration = $dat['lengthText']['simpleText'];
+					$userName = $dat['ownerText']['runs'][0]['text'];
+					$views = $dat['viewCountText']['simpleText'];
+					$uploaded = $dat['publishedTimeText'];
+					$this->data['videos'][] = ['videoID'=>$videoID, 'title'=>$title, 'duration'=>$duration, 'user'=>$userName, 'uploaded'=>$uploaded, 'views'=>$views];
+				}
+				return;
+			}
 			unset($data[0]); $data = array_values($data);
 			$dataCount = count($data);
 
-			$this->data['videos'] = [];
 			unset($this->data['next']);
 			unset($this->data['previous']);
 			for($i = 0; $i<$dataCount; $i++){
