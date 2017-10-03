@@ -6,8 +6,7 @@
 	use \ScarletsFiction\LittleYoutube;
 
 	$error = '';
-
-	$video = LittleYoutube::video("https://www.youtube.com/watch?v=R1RonAlzvZk", array("loadVideoSize"=>true));
+	$video = LittleYoutube::video("https://www.youtube.com/watch?v=R1RonAlzvZk");
 	$error .= $video->error."\n";
 	//$video->getImage();
 	print_r($video->data);

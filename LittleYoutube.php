@@ -60,12 +60,16 @@ namespace ScarletsFiction\LittleYoutube{
 			}
 
 			$data = \ScarletsFiction\WebApi::loadURL('https://www.youtube.com/watch?v='.$id)['content'];
+			if(strpos($data, 'Sorry for the interruption')!==false){
+				$this->error = "Need to solve captcha from youtube";
+				return false;
+			}
 			$data = explode('ytplayer.config = ', $data)[1];
 			$data = explode(';ytplayer.load', $data);
-			$this->parseVideoDetail($data[1]);
 			$data = $data[0];
 			$data = json_decode($data, true);
 			unset($data['args']['fflags']);
+			//$this->parseVideoDetail($data);
 
 			$this->getPlayerScript($data['assets']['js']);
 			if(!isset($data['args']['title'])){
@@ -183,12 +187,17 @@ namespace ScarletsFiction\LittleYoutube{
 				if(isset($map_info['s']))
 				{
 					if(!isset($this->data['playerID']))
-						$this->data['playerID'] = $this->getPlayerScript($data['videoID']);
+						$this->data['playerID'] = $this->getPlayerScript(false, $data['playerID']);
 					if(strpos($map_info['url'], 'ratebypass=')===false)
 						$map_info['url'] .= '&ratebypass=yes';
 	  				$signature = '&signature='.$this->decipherSignature($map_info['s']);
 				}
 		
+				//Change to redirector
+				$subdomain = explode(".googlevideo.com", $map_info['url'])[0];
+				$subdomain = explode("//", $subdomain)[1];
+				$map_info['url'] = str_replace($subdomain, 'redirector', $map_info['url']);
+
 				$map['url'] = $map_info['url'].$signature.'&title='.urlencode($this->data['title']);
 				if($this->settings['loadVideoSize']){
 					$size = \ScarletsFiction\WebApi::urlContentSize($map['url']);
@@ -261,7 +270,17 @@ namespace ScarletsFiction\LittleYoutube{
 			];
 		}
 
-		private function getPlayerScript($playerURL){
+		private function getPlayerScript($playerURL, $fromVideoID=false){
+			if($fromVideoID){
+				$data = \ScarletsFiction\WebApi::loadURL('https://www.youtube.com/watch?v='.$fromVideoID)['content'];
+				if(strpos($data, 'Sorry for the interruption')!==false){
+					$this->error = "Need to solve captcha from youtube";
+					return false;
+				}
+				$data = explode("/yts/jsbin/player", $data)[1];
+				$data = explode('"', $data)[0];
+				$playerURL = "/yts/jsbin/player".$data;
+			}
 			try{
 				$playerID = explode("/yts/jsbin/player", $playerURL)[1];
 				$playerID = explode("-", explode("/", $playerID)[0]);
@@ -270,11 +289,10 @@ namespace ScarletsFiction\LittleYoutube{
 				$this->error = "Failed to parse playerID from player url: ".$playerURL;
 				return false;
 			}
-			$playerURL = str_replace('\/', '/', explode('"', $playerID)[0]);
-			$playerID = explode('/', $playerURL)[0];
-		
+
+			$playerURL = str_replace('\/', '/', explode('"', $playerURL)[0]);
 			if(!file_exists($this->settings['temporaryDirectory']."/$playerID")) {
-				$decipherScript = \ScarletsFiction\WebApi::loadURL("https://youtube.com/yts/jsbin/player-$playerURL");
+				$decipherScript = \ScarletsFiction\WebApi::loadURL("http://www.youtube.com$playerURL");
 				file_put_contents($this->settings['temporaryDirectory']."/$playerID", $decipherScript);
 			}
 
@@ -585,6 +603,10 @@ namespace ScarletsFiction\LittleYoutube{
 
 		public function processDetails(){
 			$data = \ScarletsFiction\WebApi::loadURL('https://www.youtube.com/playlist?list='.$this->data['playlistID'])['content'];
+			if(strpos($data, 'Sorry for the interruption')!==false){
+				$this->error = "Need to solve captcha from youtube";
+				return false;
+			}
 			$data = explode('data-title="', $data);
 			if(count($data)==1){
 				$data = explode('ytInitialData"] = ', $data[0])[1];
@@ -648,6 +670,10 @@ namespace ScarletsFiction\LittleYoutube{
 			$this->data['videos'] = [];
 
 			$data = \ScarletsFiction\WebApi::loadURL($url)['content'];
+			if(strpos($data, 'Sorry for the interruption')!==false){
+				$this->error = "Need to solve captcha from youtube";
+				return false;
+			}
 			$data = explode('yt-lockup-title', $data);
 			if(count($data)==1){
 				$data = explode('ytInitialData"] = ', $data[0])[1];
