@@ -3,11 +3,17 @@ var listGroupTemplate = '<a target="_blank" href="*url*" style="" class="list-gr
 
 function videoButton(){
 	request({video:$('#urlVideo').val()}, function(respond){
-		var json = JSON.parse(respond);
+		try{
+			var json = JSON.parse(respond);
+		} catch (e) {
+			$("#videoError").html('Parse error\n<br>'+respond);
+        	return;
+    	}
 		if(json.error.length>=4){
 			$("#videoError").html(json.error);
 			return;
 		}
+		$("#videoError").html('');
 		$('#videoDetail').css('display', '');
 		$('#videoDetail #title').html(json.data.title);
 		$('#videoDetail #info').html("Duration: "+secondsToMinutes(json.data.duration)+"\nViewed: "+json.data.viewCount);
@@ -41,11 +47,17 @@ function videoButton(){
 }
 function channelButton(){
 	request({channel:$('#urlChannel').val()}, function(respond){
-		var json = JSON.parse(respond);
+		try{
+			var json = JSON.parse(respond);
+		} catch (e) {
+			$("#channelError").html('Parse error\n<br>'+respond);
+        	return;
+    	}
 		if(json.error.length>=4){
 			$("#channelError").html(json.error);
 			return;
 		}
+		$("#channelError").html('');
 		var list = json.data.playlists;
 		$('#channelGroupList').html('');
 		for (var i = 0; i < list.length; i++) {
@@ -60,11 +72,17 @@ function channelButton(){
 }
 function playlistButton(){
 	request({playlist:$('#urlPlaylist').val()}, function(respond){
-		var json = JSON.parse(respond);
+		try{
+			var json = JSON.parse(respond);
+		} catch (e) {
+			$("#playlistError").html('Parse error\n<br>'+respond);
+        	return;
+    	}
 		if(json.error.length>=4){
 			$("#playlistError").html(json.error);
 			return;
 		}
+		$("#playlistError").html('');
 		var list = json.data.videos;
 		$('#playlistGroupList').html('');
 		for (var i = 0; i < list.length; i++) {
@@ -83,7 +101,12 @@ function playlistButton(){
 }
 function searchButton(){
 	request({search:$('#urlSearch').val()}, function(respond){
-		var json = JSON.parse(respond);
+		try{
+			var json = JSON.parse(respond);
+		} catch (e) {
+			$("#videoError").html('Parse error\n<br>'+respond);
+        	return;
+    	}
 		if(json.error.length>=4){
 			$("#searchError").html(json.error);
 			console.log(json.error);

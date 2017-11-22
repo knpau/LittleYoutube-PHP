@@ -1,4 +1,16 @@
 <?php
+
+	/***
+		LittleYoutube Library v1.0
+		https://github.com/StefansArya/LittleYoutube-PHP
+		
+		This is a free library. You can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation.
+		
+		You should have include this small notice along this script.
+	***/
+
 namespace ScarletsFiction\LittleYoutube{
 	class LittleYoutubeInfo{
 		public $error;
@@ -82,7 +94,7 @@ namespace ScarletsFiction\LittleYoutube{
 			$this->data['channelID'] = $data['args']['ucid'];
 
 			$subtitle = json_decode($data['args']['player_response'], true);
-			if(isset($subtitle['captions'])){
+			if(isset($subtitle['captions'])&&isset($subtitle['captions']['playerCaptionsTracklistRenderer']['captionTracks'])){
 				$this->data['subtitle'] = $subtitle['captions']['playerCaptionsTracklistRenderer']['captionTracks'];
 				foreach ($this->data['subtitle'] as &$value) {
 					$value = ['url'=>$value['baseUrl'], 'lang'=>$value['languageCode']];
@@ -497,7 +509,10 @@ namespace ScarletsFiction\LittleYoutube{
 				$id = explode('channel_id=', $id)[1];
 				$this->data['channelID'] = explode('&', $id)[0];
 			}
-			else $this->data['channelID'] = $id;
+			else if(strpos($id, '/channel/')!==false){
+				$id = explode('/channel/', $id)[1];
+				$this->data['channelID'] = explode('&', $id)[0];
+			} else $this->data['channelID'] = $id;
 			if($this->settings["processDetail"])
 				$this->processDetails();
 		}
@@ -523,10 +538,7 @@ namespace ScarletsFiction\LittleYoutube{
 				$value = explode('};', $value)[0].'}';
 				$value = json_decode($value, true);
 				$user = $value['header']['c4TabbedHeaderRenderer'];
-				$this->data['channelID'] = $user['channelId'];
-				$this->data['userID'] = $user['navigationEndpoint']['webNavigationEndpointData']['url'];
-				$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $this->data['userID'])[1])[0])[0])[0];
-				$this->data['userData'] = [
+				$this->data['channelID'] = $user['channelId'];				$this->data['userData'] = [
 					"name"=>$user['title'],
 					"image"=>$user['avatar']['thumbnails'][0]['url']
 				];
@@ -613,9 +625,11 @@ namespace ScarletsFiction\LittleYoutube{
 				$data = explode('};', $data)[0].'}';
 				$data = json_decode($data, true);
 
+				if(!isset($data['sidebar'])){
+					$this->error = "This feature can't be used for a playlist created by Youtube";
+					return;
+				}
 				$user = $data['sidebar']['playlistSidebarRenderer']['items'][1]['playlistSidebarSecondaryInfoRenderer']['videoOwner']['videoOwnerRenderer'];
-				$this->data['userID'] = $user['title']['runs'][0]['navigationEndpoint']['browseEndpoint']['canonicalBaseUrl'];
-				$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $this->data['userID'])[1])[0])[0])[0];
 				$this->data['userData'] = [
 					"name"=>$user['title']['runs'][0]['text'],
 					"image"=>$user['thumbnail']['thumbnails'][0]['url']
