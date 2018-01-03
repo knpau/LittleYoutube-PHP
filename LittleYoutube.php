@@ -300,6 +300,8 @@ namespace ScarletsFiction\LittleYoutube{
 		{
 			$id = $this->data['videoID'];
 			return [
+			//Max Resolution Thumbnail (1280x720px)
+				"http://i1.ytimg.com/vi/$id/maxresdefault.jpg",
 			//High Quality Thumbnail (480x360px)
 				"http://i1.ytimg.com/vi/$id/hqdefault.jpg",
 			//Medium Quality Thumbnail (320x180px)
@@ -628,7 +630,8 @@ namespace ScarletsFiction\LittleYoutube{
 				$value = explode('};', $value)[0].'}';
 				$value = json_decode($value, true);
 				$user = $value['header']['c4TabbedHeaderRenderer'];
-				$this->data['channelID'] = $user['channelId'];				$this->data['userData'] = [
+				$this->data['channelID'] = $user['channelId'];
+				$this->data['userData'] = [
 					"name"=>$user['title'],
 					"image"=>$user['avatar']['thumbnails'][0]['url']
 				];
@@ -646,19 +649,23 @@ namespace ScarletsFiction\LittleYoutube{
 			$this->data['channelID'] = explode('/', explode('?', explode('"', explode('/channel/', $value[0])[1])[0])[0])[0];
 			$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $value[0])[1])[0])[0])[0];//src="
 
-			$userData = explode('>', explode('appbar-nav-avatar', $value[0])[1])[0];
-			$this->data['userData'] = [
-				"name"=>explode('"', explode('title="', $userData)[1])[0],
-				"image"=>explode('"', explode('src="', $userData)[1])[0],
-			];
+			$userData = explode('appbar-nav-avatar', $value[0]);
+			if(count($userData)!=1){
+				$userData = explode('>', $userData[1])[0];
+				$this->data['userData'] = [
+					"name"=>explode('"', explode('title="', $userData)[1])[0],
+					"image"=>explode('"', explode('src="', $userData)[1])[0]
+				];
+			} else $this->data['userData'] = ["name"=>'',"image"=>''];
 
 			unset($value[0]); $value = array_values($value);
-			foreach ($value as &$value_) {
-				$value_ = explode('</a>', $value_)[0];
-				$value_ = explode('>', $value_);
-				$value_ = ["title"=>$value_[1], "playlistID"=>explode('"', $value_[0])[0]];
+			for($i=1; $i<count($value); $i=$i+2){
+				$value = [
+					"title"=>explode('"', explode('"simpleText":"', $value[$i])[1])[0],
+					"playlistID"=>explode('"', $value[$i-1])[0]
+				];
 			}
-			$this->data['playlists'] = $value;
+			$this->data['playlists'][] = $value;
 
 			// Videos
 			$value = \ScarletsFiction\WebApi::loadURL($data[1])['content'];
@@ -778,7 +785,7 @@ namespace ScarletsFiction\LittleYoutube{
 				$this->error = "Need to solve captcha from youtube";
 				return false;
 			}
-				print_r($data);exit;
+
 			$data = explode('yt-lockup-title', $data);
 			if(count($data)==1){
 				$data = explode('ytInitialData"] = ', $data[0])[1];

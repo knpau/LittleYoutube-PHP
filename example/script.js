@@ -1,5 +1,24 @@
 var buttonTemplate = '<a target="_blank" href="*url*" type="button" class="btn btn-secondary">*text*</a>';
-var listGroupTemplate = '<a target="_blank" href="*url*" style="" class="list-group-item"><img src="*picture*" alt="" style="display: inline-block;width: 200px;"><div style="width: 70%;"><div class="d-flex w-100 justify-content-between" style="margin-left: 10px;"><h5 class="mb-1">*title*</h5><small class="text-muted">*floatrightinfo*</small></div><p class="mb-1">*desc*</p><small class="text-muted">*bottominfo*</small></div></a>';
+var listGroupTemplate = '<a target="_blank" href="*url*" style="" class="list-group-item"><img src="*picture*" alt="" style="display: inline-block;width:200px"><div style="width: 70%;"><div class="d-flex w-100 justify-content-between" style="margin-left: 10px;"><h5 class="mb-1">*title*</h5><small class="text-muted">*floatrightinfo*</small></div><p class="mb-1">*desc*</p><small class="text-muted">*bottominfo*</small></div></a>';
+
+$(function(){
+	$('#urlVideo').keypress(function(e) {
+	    if(e.keyCode == '13')
+	    	videoButton();
+	});
+	$('#urlChannel').keypress(function(e) {
+	    if(e.keyCode == '13')
+	    	channelButton();
+	});
+	$('#urlPlaylist').keypress(function(e) {
+	    if(e.keyCode == '13')
+	    	playlistButton();
+	});
+	$('#urlSearch').keypress(function(e) {
+	    if(e.keyCode == '13')
+	    	searchButton();
+	});
+});
 
 function videoButton(){
 	request({video:$('#urlVideo').val()}, function(respond){
@@ -92,7 +111,7 @@ function playlistButton(){
 				.replace("*title*", list[i].title)
 				.replace("*desc*", "")
 				.replace("*url*", "https://www.youtube.com/watch?v="+list[i].videoID)
-				.replace("*picture*", 'http://i1.ytimg.com/vi/'+list[i].videoID+'/hqdefault.jpg')
+				.replace("*picture*", 'http://i1.ytimg.com/vi/'+list[i].videoID+'/mqdefault.jpg')
 			);
 		}
 	}, function(text){
@@ -121,7 +140,7 @@ function searchButton(){
 				.replace("*title*", list[i].title)
 				.replace("*desc*", "")
 				.replace("*url*", "https://www.youtube.com/watch?v="+list[i].videoID)
-				.replace("*picture*", 'http://i1.ytimg.com/vi/'+list[i].videoID+'/hqdefault.jpg')
+				.replace("*picture*", 'http://i1.ytimg.com/vi/'+list[i].videoID+'/mqdefault.jpg')
 				);
 		}
 	}, function(text){
@@ -130,15 +149,16 @@ function searchButton(){
 }
 
 function request(data, callback, error){
+	$('.tab-pane.active a.btn')[0].innerHTML = "Loading";
 	$.ajax({
 		url:"base.php",
-		data:data,
-		success:function(respond){
-			if(callback) callback(respond);
-		},
-		error:function(respond){
-			if(error) error(respond);
-		}
+		data:data
+	}).done(function(respond){
+		if(callback) callback(respond);
+	}).fail(function(respond){
+		if(error) error(respond);
+	}).always(function(){
+		$('.tab-pane.active a.btn')[0].innerHTML = "Submit";
 	});
 }
 

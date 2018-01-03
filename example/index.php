@@ -41,7 +41,7 @@
 					<div id="videoDetail" style="display: none">
 						<h2 id="title"></h2>
 						<p id="info"></p>
-						<img id="picture" src="" alt=""/><br><br>
+						<img id="picture" src="" alt="" height="340px"/><br><br>
 					</div>
 					<div id="encoded" style="display: none">
 						<label>Encoded (Audio+Video):</label>
@@ -104,6 +104,6 @@
         <p>Have you ever dreamed put your own channel on your own website?<br><a href="https://github.com/StefansArya/LittleYoutube-PHP" target="_blank">LittleYoutube</a> is here to help you</p>
       </div>
     </div>
-	<script src="script.js"></script>
+	<script src="script.js?version=1"></script>
   </body>
 </html>
