@@ -3,7 +3,7 @@
 [![Latest Version](https://img.shields.io/badge/build-stable-brightgreen.svg)](https://packagist.org/packages/scarletsfiction/littleyoutube)
 [![Software License](https://img.shields.io/badge/license-GPL3.0-brightgreen.svg)](LICENSE)
 
-LittleYoutube 1.2
+LittleYoutube
 ==========
 
 Have you ever dreamed put your own channel on your own website?
