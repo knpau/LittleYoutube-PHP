@@ -876,10 +876,10 @@ namespace ScarletsFiction\LittleYoutube{
 					$dat = $value['videoRenderer'];
 					$videoID = $dat['videoId'];
 					$title = $dat['title']['simpleText'];
-					$duration = $dat['lengthText']['simpleText'];
-					$userName = $dat['ownerText']['runs'][0]['text'];
-					$views = $dat['viewCountText']['simpleText'];
-					$uploaded = $dat['publishedTimeText'];
+					$duration = isset($dat['lengthText'])?$dat['lengthText']['simpleText']:'?';
+					$userName = isset($dat['ownerText'])?$dat['ownerText']['runs'][0]['text']:'?';
+					$views = isset($dat['viewCountText']['simpleText'])?$dat['viewCountText']['simpleText']:'?';
+					$uploaded = isset($dat['publishedTimeText'])?$dat['publishedTimeText']:'?';
 					$this->data['videos'][] = ['videoID'=>$videoID, 'title'=>$title, 'duration'=>$duration, 'user'=>$userName, 'uploaded'=>$uploaded, 'views'=>$views];
 				}
 				return;
