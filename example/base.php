@@ -27,3 +27,8 @@
 		$error .= $search->error."\n";
 		print_r(json_encode(["data"=>$search->data, "error"=>$error]));
 	}
+
+	if(isset($_REQUEST['lyric'])){
+		$lyric = LittleYoutube\video::parseSubtitleURL($_REQUEST['lyric'], 'srt');
+		\ScarletsFiction\Stream::variableFile('lyric.srt', $lyric);
+	}

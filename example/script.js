@@ -40,10 +40,13 @@ function videoButton(){
 
 		$('#encoded').css('display', 'none');
 		$('#adaptive').css('display', 'none');
+		$('#subtitle').css('display', 'none');
 		$('#encoded .button-group').html('');
 		$('#adaptive .button-group').html('');
+		$('#subtitle .button-group').html('');
 		var encoded = json.data.video.encoded;
 		var adaptive = json.data.video.adaptive;
+		var subtitle = json.data.subtitle;
 		if(encoded){
 			$('#encoded').css('display', '');
 			for (var i = 0; i < encoded.length; i++) {
@@ -58,6 +61,14 @@ function videoButton(){
 				$('#adaptive .button-group').append(buttonTemplate
 					.replace("*url*", adaptive[i].url)
 					.replace("*text*", adaptive[i].quality+'('+adaptive[i].type[0]+'/'+adaptive[i].type[1]+')'));
+			}
+		}
+		if(subtitle){
+			$('#subtitle').css('display', '');
+			for (var i = 0; i < subtitle.length; i++) {
+				$('#subtitle .button-group').append(buttonTemplate
+					.replace("*url*", "base.php?lyric="+encodeURIComponent(subtitle[i].url))
+					.replace("*text*", subtitle[i].lang));
 			}
 		}
 	}, function(text){

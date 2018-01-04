@@ -52,6 +52,11 @@
 						<label>Adaptive (Audio/Video only):</label>
 						<div class="button-group">
 						</div>
+					</div><br><br>
+					<div id="subtitle" style="display: none">
+						<label>Subtitle:</label>
+						<div class="button-group">
+						</div>
 					</div>
 				</div>
 				<div class="tab-pane fade" id="collapseChannel">
