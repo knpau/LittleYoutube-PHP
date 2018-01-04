@@ -1,7 +1,7 @@
 <?php
 
 	/***
-		LittleYoutube Library v1.0
+		LittleYoutube Library v1.2
 		https://github.com/StefansArya/LittleYoutube-PHP
 		
 		This is a free library. You can redistribute it and/or modify
