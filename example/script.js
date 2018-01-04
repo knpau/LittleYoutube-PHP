@@ -1,5 +1,5 @@
 var buttonTemplate = '<a target="_blank" href="*url*" type="button" class="btn btn-secondary">*text*</a>';
-var listGroupTemplate = '<a target="_blank" href="*url*" style="" class="list-group-item"><img src="*picture*" alt="" style="display: inline-block;width:200px"><div style="width: 70%;"><div class="d-flex w-100 justify-content-between" style="margin-left: 10px;"><h5 class="mb-1">*title*</h5><small class="text-muted">*floatrightinfo*</small></div><p class="mb-1">*desc*</p><small class="text-muted">*bottominfo*</small></div></a>';
+var listGroupTemplate = '<a target="_blank" href="*url*" class="list-group-item"><img src="*picture*" alt="" style="display: inline-block;width:200px"/><div style="width: 70%;"><div class="d-flex w-100 justify-content-between" style="margin-left: 10px;"><h5 class="mb-1">*title*</h5><small class="text-muted">*floatrightinfo*</small></div><p class="mb-1">*desc*</p><small class="text-muted">*bottominfo*</small></div></a>';
 
 $(function(){
 	$('#urlVideo').keypress(function(e) {
