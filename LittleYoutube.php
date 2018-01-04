@@ -701,8 +701,18 @@ namespace ScarletsFiction\LittleYoutube{
 					"image"=>$user['avatar']['thumbnails'][0]['url']
 				];
 
-				$value = $value['contents']['twoColumnBrowseResultsRenderer']['tabs'][2]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['gridRenderer'];
+				$value = $value['contents']['twoColumnBrowseResultsRenderer']['tabs'][2]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0];
 
+				if(isset($value['gridRenderer'])){
+					$value = $value['gridRenderer'];
+				}
+				elseif(isset($value['shelfRenderer'])){
+					$value = $value['shelfRenderer']['content']['gridRenderer'];
+				}
+				else{
+					$this->onError("Can't obtain playlist from this channel");
+					return;
+				}
 				foreach ($value['items'] as $value_){
 					$values = $value_['gridPlaylistRenderer'];
 					$this->data['playlists'][] = ["title"=>$values['title']['simpleText'], "playlistID"=>$values['playlistId']];
@@ -802,7 +812,10 @@ namespace ScarletsFiction\LittleYoutube{
 				$playlists = [];
 				foreach ($data['contents'] as $value_){
 					$values = $value_['playlistVideoRenderer'];
-					$this->data['videos'][] = ["title"=>$values['title']['accessibility']['accessibilityData']['label'], "videoID"=>$values['videoId']];
+					if(!isset($values['title']['accessibility'])){
+						$this->data['videos'][] = ["title"=>'Undefined video title', "videoID"=>$values['videoId']];
+					}
+					else $this->data['videos'][] = ["title"=>$values['title']['accessibility']['accessibilityData']['label'], "videoID"=>$values['videoId']];
 				}
 				return;
 			}
