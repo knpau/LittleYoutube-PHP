@@ -247,10 +247,16 @@ namespace ScarletsFiction\LittleYoutube{
 		
 					if($this->settings['useRedirector']){
 						//Change to redirector
-						$subdomain = explode(".googlevideo.com", $map_info['url'])[0];
+						$subdomain = explode(".googlevideo.com", $map['url'])[0];
 						$subdomain = explode("//", $subdomain)[1];
-						$map_info['url'] = str_replace($subdomain, 'redirector', $map_info['url']);
+						$map['url'] = str_replace($subdomain, 'redirector', $map['url']);
 					}
+				} 
+		  		else $map['url'] = $map_info['url'].'&title='.urlencode($this->data['title']);
+		  		
+		  		if($this->settings['loadVideoSize']) {
+					$size = \ScarletsFiction\WebApi::urlContentSize($map['url']);
+					$map['size'] = \ScarletsFiction\FileApi::fileSize($size);
 				}
 			}
 			return $streamMap;
@@ -335,7 +341,7 @@ namespace ScarletsFiction\LittleYoutube{
 		public function getImage()
 		{
 			$id = $this->data['videoID'];
-			return [
+			$list = [
 			//Max Resolution Thumbnail (1280x720px)
 				"http://i1.ytimg.com/vi/$id/maxresdefault.jpg",
 			//High Quality Thumbnail (480x360px)
@@ -345,6 +351,14 @@ namespace ScarletsFiction\LittleYoutube{
 			//Normal Quality Thumbnail (120x90px)
 				"http://i1.ytimg.com/vi/$id/default.jpg"
 			];
+
+			for ($i=0; $i < count($list)-1; $i++) {
+				$s1 = \ScarletsFiction\WebApi::urlContentSize($list[$i]);
+				if($s1!=0) break;
+				array_splice($list, 0, 1);
+			}
+
+			return $list;
 		}
 
 		private function getLatestPlayerScript($forceReset){
@@ -1017,7 +1031,7 @@ namespace ScarletsFiction{
 			$header  = curl_getinfo($ch);
 			if($header['http_code']!=200){
 				curl_close($ch);
-				echo("Connection error: ".$header['http_code']);
+				//echo("Connection error: ".$header['http_code']);
 				return ['headers'=>'', 'content'=>'', 'cookies'=>''];
 			}
 			$myHeader = $header['request_header'];
