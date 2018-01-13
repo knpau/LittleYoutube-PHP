@@ -1,5 +1,5 @@
 var buttonTemplate = '<a target="_blank" href="*url*" type="button" class="btn btn-secondary">*text*</a>';
-var listGroupTemplate = '<a target="_blank" href="*url*" class="list-group-item"><img src="*picture*" alt="" style="display: inline-block;width:200px"/><div style="width: 70%;"><div class="d-flex w-100 justify-content-between" style="margin-left: 10px;"><h5 class="mb-1">*title*</h5><small class="text-muted">*floatrightinfo*</small></div><p class="mb-1">*desc*</p><small class="text-muted">*bottominfo*</small></div></a>';
+var listGroupTemplate = '<a target="_blank" href="*url*" class="list-group-item"><img src="*picture*" alt="" style="display: inline-block;width:200px"/><div style="width: 70%;"><div class="d-flex w-100 justify-content-between" style="margin-left: 10px;"><h5 class="mb-1">*title*</h5><small class="text-muted">*floatrightinfo*</small></div><p class="mb-1" style="margin-left: 10px;">*desc*</p><small class="text-muted">*bottominfo*</small></div></a>';
 
 $(function(){
 	$('#urlVideo').keypress(function(e) {
@@ -143,6 +143,7 @@ function parseSearchResult(respond){
 		console.log(json.error);
 		return;
 	}
+	$("#searchError").html('');
 	var list = json.data.videos;
 	$('#searchGroupList').html('');
 	var temp = '';
@@ -151,7 +152,7 @@ function parseSearchResult(respond){
 			.replace("*bottominfo*", list[i].views)
 			.replace("*floatrightinfo*", list[i].duration)
 			.replace("*title*", list[i].title)
-			.replace("*desc*", "")
+			.replace("*desc*", list[i].description)
 			.replace("*url*", "https://www.youtube.com/watch?v="+list[i].videoID)
 			.replace("*picture*", 'http://i1.ytimg.com/vi/'+list[i].videoID+'/mqdefault.jpg')
 			;
