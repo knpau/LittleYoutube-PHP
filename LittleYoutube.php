@@ -63,6 +63,10 @@ namespace ScarletsFiction\LittleYoutube{
 	{
 		public function init($url)
 		{
+			if(explode('http', $url)[0]!=''){
+				$this->onError("Invalid URL");
+				return false;
+			}
 			$id = $url;
 			if(strpos($id, '/watch?v=')!==false){
 				$id = explode('/watch?v=', $id)[1];
@@ -101,7 +105,7 @@ namespace ScarletsFiction\LittleYoutube{
 				$data = $data[0];
 				$data = json_decode($data, true);
 				unset($data['args']['fflags']);
-				//$this->parseVideoDetail($data);
+				// Fallback version if using older browser --> $this->parseVideoDetailFallback($data);
 
 				$this->getPlayerScript($data['assets']['js']);
 				if(!isset($data['args']['title'])){
@@ -149,7 +153,7 @@ namespace ScarletsFiction\LittleYoutube{
 			}
 		}
 
-		private function parseVideoDetail($data){
+		private function parseVideoDetailFallback($data){
 			$panelDetails = explode('"action-panel-details"', $data);
 			if(count($panelDetails)==1){
 				$this->onError("Failed to parse video details");
@@ -669,6 +673,10 @@ namespace ScarletsFiction\LittleYoutube{
 	{
 		public function init($url)
 		{
+			if(explode('http', $url)[0]!=''){
+				$this->onError("Invalid URL");
+				return false;
+			}
 			$id = $url;
 			if(strpos($id, '/user/')!==false){
 				$id = explode('/user/', $id)[1];
@@ -725,52 +733,54 @@ namespace ScarletsFiction\LittleYoutube{
 				}
 				else{
 					$this->onError("Can't obtain playlist from this channel");
-					return;
+					return false;
 				}
 				foreach ($value['items'] as $value_){
 					$values = $value_['gridPlaylistRenderer'];
 					$this->data['playlists'][] = ["title"=>$values['title']['simpleText'], "playlistID"=>$values['playlistId']];
 				}
 				$this->data['videos'] = [];
-				return;
+			} else {
+				// Fallback version if using older browser -->
+				$this->data['channelID'] = explode('/', explode('?', explode('"', explode('/channel/', $value[0])[1])[0])[0])[0];
+				$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $value[0])[1])[0])[0])[0];//src="
+
+				$userData = explode('appbar-nav-avatar', $value[0]);
+				if(count($userData)!=1){
+					$userData = explode('>', $userData[1])[0];
+					$this->data['userData'] = [
+						"name"=>explode('"', explode('title="', $userData)[1])[0],
+						"image"=>explode('"', explode('src="', $userData)[1])[0]
+					];
+				} else $this->data['userData'] = ["name"=>'',"image"=>''];
+
+				unset($value[0]); $value = array_values($value);
+				for($i=1; $i<count($value); $i=$i+2){
+					$value = [
+						"title"=>explode('"', explode('"simpleText":"', $value[$i])[1])[0],
+						"playlistID"=>explode('"', $value[$i-1])[0]
+					];
+				}
+				$this->data['playlists'][] = $value;
+
+				// Videos
+				$value = \ScarletsFiction\WebApi::loadURL($data[1])['content'];
+				$value = explode('yt-lockup-title', $value);
+				unset($value[0]); $value = array_values($value);
+
+				foreach ($value as &$value_) {
+					$value_ = explode('</span>', $value_)[0];
+					$value_ = explode('/watch?v=', $value_)[1];
+					$value_ = explode('>', $value_);
+					$value_ = [
+						"title"=>explode('<', $value_[1])[0],
+						"duration"=>explode('Duration: ', $value_[count($value_)-1])[1],
+						"videoID"=>explode('"', $value_[0])[0]];
+				}
+				$this->data['videos'] = $value;
+				// <-- Fallback version end
 			}
-
-			$this->data['channelID'] = explode('/', explode('?', explode('"', explode('/channel/', $value[0])[1])[0])[0])[0];
-			$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $value[0])[1])[0])[0])[0];//src="
-
-			$userData = explode('appbar-nav-avatar', $value[0]);
-			if(count($userData)!=1){
-				$userData = explode('>', $userData[1])[0];
-				$this->data['userData'] = [
-					"name"=>explode('"', explode('title="', $userData)[1])[0],
-					"image"=>explode('"', explode('src="', $userData)[1])[0]
-				];
-			} else $this->data['userData'] = ["name"=>'',"image"=>''];
-
-			unset($value[0]); $value = array_values($value);
-			for($i=1; $i<count($value); $i=$i+2){
-				$value = [
-					"title"=>explode('"', explode('"simpleText":"', $value[$i])[1])[0],
-					"playlistID"=>explode('"', $value[$i-1])[0]
-				];
-			}
-			$this->data['playlists'][] = $value;
-
-			// Videos
-			$value = \ScarletsFiction\WebApi::loadURL($data[1])['content'];
-			$value = explode('yt-lockup-title', $value);
-			unset($value[0]); $value = array_values($value);
-
-			foreach ($value as &$value_) {
-				$value_ = explode('</span>', $value_)[0];
-				$value_ = explode('/watch?v=', $value_)[1];
-				$value_ = explode('>', $value_);
-				$value_ = [
-					"title"=>explode('<', $value_[1])[0],
-					"duration"=>explode('Duration: ', $value_[count($value_)-1])[1],
-					"videoID"=>explode('"', $value_[0])[0]];
-			}
-			$this->data['videos'] = $value;
+			return true;
 		}
 
 		public function getChannelRSS($load=false, $parse=false){
@@ -789,6 +799,10 @@ namespace ScarletsFiction\LittleYoutube{
 	{
 		public function init($url)
 		{
+			if(explode('http', $url)[0]!=''){
+				$this->onError("Invalid URL");
+				return false;
+			}
 			$id = $url;
 			if(strpos($id, 'list=')!==false){
 				$id = explode('list=', $id)[1];
@@ -813,7 +827,7 @@ namespace ScarletsFiction\LittleYoutube{
 
 				if(!isset($data['sidebar'])){
 					$this->onError("This feature can't be used for a playlist created by Youtube");
-					return;
+					return false;
 				}
 				$user = $data['sidebar']['playlistSidebarRenderer']['items'][1]['playlistSidebarSecondaryInfoRenderer']['videoOwner']['videoOwnerRenderer'];
 				$this->data['userData'] = [
@@ -831,25 +845,28 @@ namespace ScarletsFiction\LittleYoutube{
 					}
 					else $this->data['videos'][] = ["title"=>$values['title']['accessibility']['accessibilityData']['label'], "videoID"=>$values['videoId']];
 				}
-				return;
+			} else {
+				// Fallback version if using older browser -->
+				$this->data['channelID'] = explode('/', explode('?', explode('"', explode('/channel/', $data[0])[1])[0])[0])[0];
+				$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $data[0])[1])[0])[0])[0];
+				$userData = explode('>', explode('appbar-nav-avatar', $data[0])[1])[0];
+				$this->data['userData'] = [
+					"name"=>explode('"', explode('title="', $userData)[1])[0],
+					"image"=>explode('"', explode('src="', $userData)[1])[0],
+				];
+
+				unset($data[0]); $data = array_values($data);
+				foreach ($data as &$value){
+					$title = explode('" ', $value)[0];
+					$playlistID = explode('watch?v=', $value);
+					$playlistID = explode('&amp;', $playlistID[1])[0];
+					$value = ["title"=>$title, "videoID"=>$playlistID];
+				}
+				$this->data['videos'] = $data;
+				// <-- Fallback version end
 			}
 
-			$this->data['channelID'] = explode('/', explode('?', explode('"', explode('/channel/', $data[0])[1])[0])[0])[0];
-			$this->data['userID'] = explode('/', explode('?', explode('"', explode('/user/', $data[0])[1])[0])[0])[0];
-			$userData = explode('>', explode('appbar-nav-avatar', $data[0])[1])[0];
-			$this->data['userData'] = [
-				"name"=>explode('"', explode('title="', $userData)[1])[0],
-				"image"=>explode('"', explode('src="', $userData)[1])[0],
-			];
-
-			unset($data[0]); $data = array_values($data);
-			foreach ($data as &$value){
-				$title = explode('" ', $value)[0];
-				$playlistID = explode('watch?v=', $value);
-				$playlistID = explode('&amp;', $playlistID[1])[0];
-				$value = ["title"=>$title, "videoID"=>$playlistID];
-			}
-			$this->data['videos'] = $data;
+			return true;
 		}
 	}
 
@@ -857,32 +874,111 @@ namespace ScarletsFiction\LittleYoutube{
 	{
 		public function init($query)
 		{
-			$this->data['query'] = $query;
+			$tryParse = is_array($query)?$query:@json_decode($query, true);
+			if(is_array($tryParse)){
+				$this->data['query'] = $tryParse;
+			}
+			else $this->data['query'] = $query;
 			if($this->settings["processDetail"])
 				$this->processDetails();
 		}
 
 		public function processDetails(){
-			$url = "https://www.youtube.com";
-			if(isset($this->data['queryNext']))
-				$url .= $this->data['next'];
-			else if(isset($this->data['queryPrevious']))
-				$url .= $this->data['previous'];
-			else
-				$url .= '/results?search_query='.urlencode($this->data['query']);
+			if(is_array($this->data['query'])||isset($this->data['queryNext'])){
+				if(isset($this->data['queryNext']))
+					$urlData = $this->data['next'];
+				else{
+					$urlData = $this->data['query'];
+				}
+
+				//$urlData = [$nextQuery, $nextHeader, $nextBody];
+				if(count($urlData)!=3){
+					$this->onError("Wrong query format"); //{query, continuation, itct, xsrf}
+					return false;
+				}
+
+				$url = "https://www.youtube.com/results?".http_build_query($urlData[0]);
+				$this->data['query'] = $urlData[0]['query'];
+				$headers = ['Accept: */*;q=0.8', 'Accept-Language: en-US,en;q=0.5', 'Connection: keep-alive'];
+				$headers = array_merge($headers, $urlData[1]);
+				$options = ['post'=>['session_token'=>$urlData[2]]];
+
+				$data = \ScarletsFiction\WebApi::loadURL($url, $options)['content'];
+			}
+			else{
+				$this->data['query'] = urlencode($this->data['query']);
+				$url = 'https://www.youtube.com/results?search_query='.$this->data['query'];
+				$data = \ScarletsFiction\WebApi::loadURL($url)['content'];
+			}
 			$this->data['videos'] = [];
 
-			$data = \ScarletsFiction\WebApi::loadURL($url)['content'];
 			if(strpos($data, 'Sorry for the interruption')!==false){
 				$this->onError("Need to solve captcha from youtube");
 				return false;
 			}
+			unset($this->data['next']);
 
 			$data = explode('yt-lockup-title', $data);
 			if(count($data)==1){
-				$data = explode('ytInitialData"] = ', $data[0])[1];
-				$data = explode('};', $data)[0].'}';
+				$nextHeader = [];
+				$nextBody = [];
+
+				//xsrf
+				preg_match('/"XSRF_TOKEN":"(.*?)"/', $data[0], $match);
+				$nextBody['session_token'] = $match[1];
+				unset($match);
+				
+				//pgcl
+				preg_match('/"PAGE_CL":(.*?)\,/', $data[0], $match);
+				$nextHeader[] = 'x-youtube-page-cl: '.$match[1];
+				unset($match);
+				
+				//vrck
+				preg_match('/"VARIANTS_CHECKSUM":"(.*?)"/', $data[0], $match);
+				$nextHeader[] = 'x-youtube-variants-checksum: '.$match[1];
+				unset($match);
+				
+				//pgbl
+				preg_match('/"PAGE_BUILD_LABEL":"(.*?)"/', $data[0], $match);
+				$nextHeader[] = 'x-youtube-page-label: '.$match[1];
+				unset($match);
+				
+				//iccl
+				preg_match('/"INNERTUBE_CONTEXT_CLIENT_VERSION":"(.*?)"/', $data[0], $match);
+				$nextHeader[] = 'x-youtube-client-version: '.$match[1];
+				unset($match);
+				
+				//iccn
+				preg_match('/"INNERTUBE_CONTEXT_CLIENT_NAME":(.*?),/', $data[0], $match);
+				$nextHeader[] = 'x-youtube-client-name: '.$match[1];
+				unset($match);
+				
+				//idtk
+				//preg_match('/"ID_TOKEN":(.*?)\,/', $data[0], $match);
+				//$nextHeader[] = 'x-youtube-identity-token: '.$match[1];
+				//unset($match);
+
+				$url_ = 'https://www.youtube.com/results?search_query='.$this->data['query'];
+				$nextHeader[] = 'x-spf-referer: '.$url_;
+				$nextHeader[] = 'x-spf-previous: '.$url_;
+				$nextHeader[] = 'referer: '.$url_;
+				$nextHeader[] = 'origin: https://www.youtube.com';
+
+				$data = explode('ytInitialData"] = ', $data[0]);
+				if(count($data)==1){
+					$this->onError("Failed to obtain data");
+					return false;
+				}
+				$data = explode('};', $data[1])[0].'}';
 				$data = json_decode($data, true);
+				if(!isset($data['contents']['twoColumnSearchResultsRenderer'])){
+
+					// "Next" search result stuck at here
+					// Reason: Youtube responded with another result instead of the next page
+
+					$this->onError("Failed to obtain data");
+					return false;
+				}
 				$data = $data['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer'];
 
 				foreach ($data['contents'] as $value){
@@ -896,86 +992,89 @@ namespace ScarletsFiction\LittleYoutube{
 					$uploaded = isset($dat['publishedTimeText'])?$dat['publishedTimeText']:'?';
 					$this->data['videos'][] = ['videoID'=>$videoID, 'title'=>$title, 'duration'=>$duration, 'user'=>$userName, 'uploaded'=>$uploaded, 'views'=>$views];
 				}
-				return;
-			}
-			unset($data[0]); $data = array_values($data);
-			$dataCount = count($data);
 
-			unset($this->data['next']);
-			unset($this->data['previous']);
-			for($i = 0; $i<$dataCount; $i++){
-				if($i==$dataCount-1){
-					if(strpos($data[$i], '>Next')){
-						$next = explode("<a", explode(">Next", $data[$i])[0]);
-						$next = $next[count($next)-1];
-						$next = explode('"', explode("/results?q=", $next)[0])[1];
-						$next = html_entity_decode($next);
-						$this->data['next'] = $next;
-					}
-					else if(strpos($data[$i], 'Previous<')){
-						$prev = explode("<a", explode("Previous<", $data[$i])[0]);
-						$prev = $prev[count($prev)-1];
-						$prev = explode('"', explode("/results?q=", $prev)[0])[1];
-						$prev = html_entity_decode($prev);
-						$this->data['previous'] = $prev;
+				if(isset($data['continuations'])&&count($data['continuations'])!=0){
+					$next = $data['continuations'][0]['nextContinuationData'];
+					if(isset($next['continuation'])){
+						$nextQuery = ["query"=>urldecode($this->data['query']), "continuation" => $next['continuation'], "itct" => $next['clickTrackingParams']];
+						$this->data['next'] = [$nextQuery, $nextHeader, $nextBody];
+					}else{
+						$this->data['next'] = false;
 					}
 				}
-				if(strpos($data[$i], '/playlist?list=')!==false){
-					continue;
-				}
-				$videoID = explode('/watch?v=', $data[$i]);
-				if(count($videoID)==1) continue; //Not a video
-				if(strpos($videoID[1], 'list=')!==false) continue; //It's playlist
-				$videoID = explode('"', $videoID[1])[0];
-
-				$title = explode('title="', $data[$i])[1];
-				$title = explode('"', $title)[0];
-
-				$duration = explode('Duration: ', $data[$i]);
-				if(count($duration)==1){
-					$duration = explode('video-time', $data[$i])[1];
-					$duration = explode('<', $duration)[0];
-					$duration = explode('>', $duration)[1];
-				}
-				else {
-					$duration = $duration[1];
-					$duration = explode('.</span>', $duration)[0];
-				}
-
-				$user = explode('/user/', $data[$i]);
-				if(count($user)==1)
-					$user = explode('/channel/', $data[$i]);
-				if(count($user)!=1){
-					$user = explode('</a>', $user[1])[0];
-					$userID = explode('"', $user)[0];
-					$userName = explode('>', $user)[1];
-					$userName = explode('<span', $userName)[0];
-				} else {
-					$userID = "";
-					$userName = "";
-				}
-
-				$meta = explode('yt-lockup-meta-info', $data[$i])[1];
-				$meta = explode('</ul>', $meta)[0];
-				$meta = explode('<li>', $meta);
-				if(count($meta)==3)
-					$views = explode('</li>', $meta[2])[0];
-				$uploaded = explode('</li>', $meta[1])[0];
-
-				$this->data['videos'][] = ['videoID'=>$videoID, 'title'=>$title, 'duration'=>$duration, 'userID'=>$userID, 'user'=>$userName, 'uploaded'=>$uploaded, 'views'=>$views];
 			}
+			else {
+				// Fallback version if using older browser -->
+				unset($data[0]); $data = array_values($data);
+				$dataCount = count($data);
+
+				for($i = 0; $i<$dataCount; $i++){
+					if($i==$dataCount-1){
+						if(strpos($data[$i], '>Next')){
+							$next = explode("<a", explode(">Next", $data[$i])[0]);
+							$next = $next[count($next)-1];
+							$next = explode('"', explode("/results?q=", $next)[0])[1];
+							$next = html_entity_decode($next);
+							$this->data['next'] = $next;
+						}
+					}
+					if(strpos($data[$i], '/playlist?list=')!==false){
+						continue;
+					}
+					$videoID = explode('/watch?v=', $data[$i]);
+					if(count($videoID)==1) continue; //Not a video
+					if(strpos($videoID[1], 'list=')!==false) continue; //It's playlist
+					$videoID = explode('"', $videoID[1])[0];
+
+					$title = explode('title="', $data[$i])[1];
+					$title = explode('"', $title)[0];
+
+					$duration = explode('Duration: ', $data[$i]);
+					if(count($duration)==1){
+						$duration = explode('video-time', $data[$i])[1];
+						$duration = explode('<', $duration)[0];
+						$duration = explode('>', $duration)[1];
+					}
+					else {
+						$duration = $duration[1];
+						$duration = explode('.</span>', $duration)[0];
+					}
+
+					$user = explode('/user/', $data[$i]);
+					if(count($user)==1)
+						$user = explode('/channel/', $data[$i]);
+					if(count($user)!=1){
+						$user = explode('</a>', $user[1])[0];
+						$userID = explode('"', $user)[0];
+						$userName = explode('>', $user)[1];
+						$userName = explode('<span', $userName)[0];
+					} else {
+						$userID = "";
+						$userName = "";
+					}
+
+					$meta = explode('yt-lockup-meta-info', $data[$i])[1];
+					$meta = explode('</ul>', $meta)[0];
+					$meta = explode('<li>', $meta);
+					if(count($meta)==3)
+						$views = explode('</li>', $meta[2])[0];
+					$uploaded = explode('</li>', $meta[1])[0];
+
+					$this->data['videos'][] = ['videoID'=>$videoID, 'title'=>$title, 'duration'=>$duration, 'userID'=>$userID, 'user'=>$userName, 'uploaded'=>$uploaded, 'views'=>$views];
+				   // <-- Fallback version end
+				}
+			}
+			return true;
 		}
 
 		public function next(){
+			if(!isset($this->data['next'])||!$this->data['next']){
+				$this->onError("Next is not available");
+				return false;
+			}
 			$this->data['queryNext'] = 1;
 			$this->processDetails();
 			unset($this->data['queryNext']);
-		}
-
-		public function previous(){
-			$this->data['queryPrevious'] = 1;
-			$this->processDetails();
-			unset($this->data['queryPrevious']);
 		}
 	}
 }
@@ -1002,11 +1101,7 @@ namespace ScarletsFiction{
 			$ch = curl_init($url);
 			curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36');
 		
-			$headers = [];
-			$headers[] = 'Accept: */*;q=0.8';
-			$headers[] = 'Accept-Language: en-US,en;q=0.5';
-			$headers[] = 'Connection: keep-alive';
-
+			$headers = ['Accept: */*;q=0.8', 'Accept-Language: en-US,en;q=0.5', 'Connection: keep-alive'];
 			if($options){
 				if(isset($options['headerOnly'])){
 					curl_setopt($ch, CURLOPT_NOBODY, true);
@@ -1016,6 +1111,11 @@ namespace ScarletsFiction{
 				}
 				if(isset($options['cookies'])){
 					curl_setopt($ch, CURLOPT_COOKIE, $options['cookies']);
+				}
+				if(isset($data['post']))
+				{
+					curl_setopt($ch, CURLOPT_POST, 1);
+					curl_setopt($ch, CURLOPT_POSTFIELDS, $data['post']);
 				}
 			}
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
@@ -1068,9 +1168,6 @@ namespace ScarletsFiction{
 	}
 
 	class Stream{
-		//ToDo - paralel download
-
-		//type = "application/octet-stream"
 		public static function localFile($name, $path, $type=false, $downloadSpeed=1024){
 			$size = filesize($path);
 			$fopen = fopen($path, 'r+');
@@ -1114,6 +1211,14 @@ namespace ScarletsFiction{
 			header('Content-type: '.$type);
 			header('Content-Disposition: attachment; filename="'.$name.'"');
 			header('Content-Length: '.$size);
+		}
+	}
+
+	class Converter{
+		public static function ffmpeg($file, $target, $options) {
+		  	$sz = 'BKMGTP';
+		  	$factor = floor((strlen($bytes) - 1) / 3);
+		  	return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)).' '.@$sz[$factor].($factor!=0?'B':'ytes');
 		}
 	}
 }

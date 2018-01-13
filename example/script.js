@@ -129,31 +129,53 @@ function playlistButton(){
 		$('#urlPlaylistText').val(text);
 	});
 }
+
+var searchNext_ = null;
+function parseSearchResult(respond){
+	try{
+		var json = JSON.parse(respond);
+	} catch (e) {
+		$("#searchError").html('Parse error\n<br>'+respond);
+    	return;
+    }
+	if(json.error.length>=4){
+		$("#searchError").html(json.error);
+		console.log(json.error);
+		return;
+	}
+	var list = json.data.videos;
+	$('#searchGroupList').html('');
+	var temp = '';
+	for (var i = 0; i < list.length; i++) {
+		temp = temp + listGroupTemplate
+			.replace("*bottominfo*", list[i].views)
+			.replace("*floatrightinfo*", list[i].duration)
+			.replace("*title*", list[i].title)
+			.replace("*desc*", "")
+			.replace("*url*", "https://www.youtube.com/watch?v="+list[i].videoID)
+			.replace("*picture*", 'http://i1.ytimg.com/vi/'+list[i].videoID+'/mqdefault.jpg')
+			;
+	}
+	$('#searchGroupList').append(temp);
+	if(json.data.next){
+		$('#nextButton').css('display', '');
+		searchNext_ = json.data.next;
+	}else{
+		$('#nextButton').css('display', 'none');
+		searchNext_ = false;
+	}
+}
 function searchButton(){
 	request({search:$('#urlSearch').val()}, function(respond){
-		try{
-			var json = JSON.parse(respond);
-		} catch (e) {
-			$("#videoError").html('Parse error\n<br>'+respond);
-        	return;
-    	}
-		if(json.error.length>=4){
-			$("#searchError").html(json.error);
-			console.log(json.error);
-			return;
-		}
-		var list = json.data.videos;
-		$('#searchGroupList').html('');
-		for (var i = 0; i < list.length; i++) {
-			$('#searchGroupList').append(listGroupTemplate
-				.replace("*bottominfo*", list[i].views)
-				.replace("*floatrightinfo*", list[i].duration)
-				.replace("*title*", list[i].title)
-				.replace("*desc*", "")
-				.replace("*url*", "https://www.youtube.com/watch?v="+list[i].videoID)
-				.replace("*picture*", 'http://i1.ytimg.com/vi/'+list[i].videoID+'/mqdefault.jpg')
-				);
-		}
+    	parseSearchResult(respond);
+	}, function(text){
+		$('#urlSearchText').val(text);
+	});
+}
+function searchNext(){
+	$('#nextButton').css('display', 'none');
+	request({searchNext:JSON.stringify(searchNext_)}, function(respond){
+    	parseSearchResult(respond);
 	}, function(text){
 		$('#urlSearchText').val(text);
 	});

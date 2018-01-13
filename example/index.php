@@ -105,6 +105,7 @@
     </div>
 
     <div class="mastfoot">
+      <button id="nextButton" onclick="searchNext()" style="margin-top: 20px;display: none;">Next</button>
       <div class="inner">
         <p>Have you ever dreamed put your own channel on your own website?<br><a href="https://github.com/StefansArya/LittleYoutube-PHP" target="_blank">LittleYoutube</a> is here to help you</p>
       </div>
