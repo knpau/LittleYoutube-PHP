@@ -145,7 +145,6 @@ function parseSearchResult(respond){
 	}
 	$("#searchError").html('');
 	var list = json.data.videos;
-	$('#searchGroupList').html('');
 	var temp = '';
 	for (var i = 0; i < list.length; i++) {
 		temp = temp + listGroupTemplate
@@ -158,24 +157,17 @@ function parseSearchResult(respond){
 			;
 	}
 	$('#searchGroupList').append(temp);
-	if(json.data.next){
-		$('#nextButton').css('display', '');
-		searchNext_ = json.data.next;
-	}else{
-		$('#nextButton').css('display', 'none');
-		searchNext_ = false;
+	$('#nextButton').css('display', '');
+}
+
+var page = 1;
+function searchButton(next){
+	if(!page){
+		page = 1;
+		$('#searchGroupList').html('');
 	}
-}
-function searchButton(){
-	request({search:$('#urlSearch').val()}, function(respond){
-    	parseSearchResult(respond);
-	}, function(text){
-		$('#urlSearchText').val(text);
-	});
-}
-function searchNext(){
-	$('#nextButton').css('display', 'none');
-	request({searchNext:JSON.stringify(searchNext_)}, function(respond){
+	else page++;
+	request({search:$('#urlSearch').val(), page:page}, function(respond){
     	parseSearchResult(respond);
 	}, function(text){
 		$('#urlSearchText').val(text);

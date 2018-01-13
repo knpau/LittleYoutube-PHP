@@ -30,7 +30,7 @@ namespace ScarletsFiction\LittleYoutube{
 				$this->onError("Temporary isn't writeable - change the folder permission to 777");
 			}
 
-			$this->init($id);
+			if($id) $this->init($id);
 		}
 
 		public function resetInit()
@@ -872,44 +872,18 @@ namespace ScarletsFiction\LittleYoutube{
 
 	class Search extends LittleYoutubeInfo
 	{
-		public function init($query)
+		public function init($query, $page=1)
 		{
-			$tryParse = is_array($query)?$query:@json_decode($query, true);
-			if(is_array($tryParse)){
-				$this->data['query'] = $tryParse;
-			}
-			else $this->data['query'] = $query;
+			$this->data['query'] = $query;
+			$this->data['page'] = $page;
 			if($this->settings["processDetail"])
 				$this->processDetails();
 		}
 
 		public function processDetails(){
-			if(is_array($this->data['query'])||isset($this->data['queryNext'])){
-				if(isset($this->data['queryNext']))
-					$urlData = $this->data['next'];
-				else{
-					$urlData = $this->data['query'];
-				}
-
-				//$urlData = [$nextQuery, $nextHeader, $nextBody];
-				if(count($urlData)!=3){
-					$this->onError("Wrong query format"); //{query, continuation, itct, xsrf}
-					return false;
-				}
-
-				$url = "https://www.youtube.com/results?".http_build_query($urlData[0]);
-				$this->data['query'] = $urlData[0]['query'];
-				$headers = ['Accept: */*;q=0.8', 'Accept-Language: en-US,en;q=0.5', 'Connection: keep-alive'];
-				$headers = array_merge($headers, $urlData[1]);
-				$options = ['post'=>['session_token'=>$urlData[2]]];
-
-				$data = \ScarletsFiction\WebApi::loadURL($url, $options)['content'];
-			}
-			else{
-				$this->data['query'] = urlencode($this->data['query']);
-				$url = 'https://www.youtube.com/results?search_query='.$this->data['query'];
-				$data = \ScarletsFiction\WebApi::loadURL($url)['content'];
-			}
+			$this->data['query'] = urlencode($this->data['query']);
+			$url = 'https://www.youtube.com/results?search_query='.$this->data['query'].'&page='.$this->data['page'];
+			$data = \ScarletsFiction\WebApi::loadURL($url)['content'];
 			$this->data['videos'] = [];
 
 			if(strpos($data, 'Sorry for the interruption')!==false){
@@ -920,50 +894,6 @@ namespace ScarletsFiction\LittleYoutube{
 
 			$data = explode('yt-lockup-title', $data);
 			if(count($data)==1){
-				$nextHeader = [];
-				$nextBody = [];
-
-				//xsrf
-				preg_match('/"XSRF_TOKEN":"(.*?)"/', $data[0], $match);
-				$nextBody['session_token'] = $match[1];
-				unset($match);
-				
-				//pgcl
-				preg_match('/"PAGE_CL":(.*?)\,/', $data[0], $match);
-				$nextHeader[] = 'x-youtube-page-cl: '.$match[1];
-				unset($match);
-				
-				//vrck
-				preg_match('/"VARIANTS_CHECKSUM":"(.*?)"/', $data[0], $match);
-				$nextHeader[] = 'x-youtube-variants-checksum: '.$match[1];
-				unset($match);
-				
-				//pgbl
-				preg_match('/"PAGE_BUILD_LABEL":"(.*?)"/', $data[0], $match);
-				$nextHeader[] = 'x-youtube-page-label: '.$match[1];
-				unset($match);
-				
-				//iccl
-				preg_match('/"INNERTUBE_CONTEXT_CLIENT_VERSION":"(.*?)"/', $data[0], $match);
-				$nextHeader[] = 'x-youtube-client-version: '.$match[1];
-				unset($match);
-				
-				//iccn
-				preg_match('/"INNERTUBE_CONTEXT_CLIENT_NAME":(.*?),/', $data[0], $match);
-				$nextHeader[] = 'x-youtube-client-name: '.$match[1];
-				unset($match);
-				
-				//idtk
-				//preg_match('/"ID_TOKEN":(.*?)\,/', $data[0], $match);
-				//$nextHeader[] = 'x-youtube-identity-token: '.$match[1];
-				//unset($match);
-
-				$url_ = 'https://www.youtube.com/results?search_query='.$this->data['query'];
-				$nextHeader[] = 'x-spf-referer: '.$url_;
-				$nextHeader[] = 'x-spf-previous: '.$url_;
-				$nextHeader[] = 'referer: '.$url_;
-				$nextHeader[] = 'origin: https://www.youtube.com';
-
 				$data = explode('ytInitialData"] = ', $data[0]);
 				if(count($data)==1){
 					$this->onError("Failed to obtain data");
@@ -972,10 +902,6 @@ namespace ScarletsFiction\LittleYoutube{
 				$data = explode('};', $data[1])[0].'}';
 				$data = json_decode($data, true);
 				if(!isset($data['contents']['twoColumnSearchResultsRenderer'])){
-
-					// "Next" search result stuck at here
-					// Reason: Youtube responded with another result instead of the next page
-
 					$this->onError("Failed to obtain data");
 					return false;
 				}
@@ -996,16 +922,6 @@ namespace ScarletsFiction\LittleYoutube{
 					$views = isset($dat['viewCountText']['simpleText'])?$dat['viewCountText']['simpleText']:'?';
 					$uploaded = isset($dat['publishedTimeText'])?$dat['publishedTimeText']:'?';
 					$this->data['videos'][] = ['videoID'=>$videoID, 'title'=>$title, 'duration'=>$duration, 'user'=>$userName, 'uploaded'=>$uploaded, 'views'=>$views, 'description'=>$description];
-				}
-
-				if(isset($data['continuations'])&&count($data['continuations'])!=0){
-					$next = $data['continuations'][0]['nextContinuationData'];
-					if(isset($next['continuation'])){
-						$nextQuery = ["query"=>urldecode($this->data['query']), "continuation" => $next['continuation'], "itct" => $next['clickTrackingParams']];
-						$this->data['next'] = [$nextQuery, $nextHeader, $nextBody];
-					}else{
-						$this->data['next'] = false;
-					}
 				}
 			}
 			else {
@@ -1073,13 +989,8 @@ namespace ScarletsFiction\LittleYoutube{
 		}
 
 		public function next(){
-			if(!isset($this->data['next'])||!$this->data['next']){
-				$this->onError("Next is not available");
-				return false;
-			}
-			$this->data['queryNext'] = 1;
+			$this->data['page']++;
 			$this->processDetails();
-			unset($this->data['queryNext']);
 		}
 	}
 }

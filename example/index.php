@@ -12,11 +12,12 @@
     <div class="masthead clearfix">
       <div class="inner">
         <h3 class="masthead-brand">LittleYoutube</h3>
+        <script type="text/javascript">function hideNext(){$('#nextButton').css('display', 'none');}</script>
         <nav class="nav nav-masthead">
-          <a class="nav-link active" href="#collapseVideo" data-toggle="tab">Video</a>
-          <a class="nav-link" href="#collapseChannel" data-toggle="tab">Channel</a>
-          <a class="nav-link" href="#collapsePlaylist" data-toggle="tab">Playlist</a>
-          <a class="nav-link" href="#collapseSearch" data-toggle="tab">Search</a>
+          <a onclick="hideNext()" class="nav-link active" href="#collapseVideo" data-toggle="tab">Video</a>
+          <a onclick="hideNext()" class="nav-link" href="#collapseChannel" data-toggle="tab">Channel</a>
+          <a onclick="hideNext()" class="nav-link" href="#collapsePlaylist" data-toggle="tab">Playlist</a>
+          <a onclick="hideNext()" class="nav-link" href="#collapseSearch" data-toggle="tab">Search</a>
         </nav>
       </div>
     </div>
@@ -105,7 +106,7 @@
     </div>
 
     <div class="mastfoot">
-      <button id="nextButton" onclick="searchNext()" style="margin-top: 20px;display: none;">Next</button>
+      <button id="nextButton" onclick="searchButton(true)" style="margin-top: 20px;display: none;">Next</button>
       <div class="inner">
         <p>Have you ever dreamed put your own channel on your own website?<br><a href="https://github.com/StefansArya/LittleYoutube-PHP" target="_blank">LittleYoutube</a> is here to help you</p>
       </div>

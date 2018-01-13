@@ -23,13 +23,12 @@
 	}
 
 	if(isset($_REQUEST['search'])){
-		$search = LittleYoutube::search($_REQUEST['search'], ["temporaryDirectory"=>realpath(__DIR__."/temp")]);
-		//$error .= $search->error."\n";
-		print_r(json_encode(["data"=>$search->data, "error"=>$error]));
-	}
-
-	if(isset($_REQUEST['searchNext'])){
-		$search = LittleYoutube::search($_REQUEST['searchNext'], ["temporaryDirectory"=>realpath(__DIR__."/temp")]);
+		if(isset($_REQUEST['page'])){
+			$search = LittleYoutube::search(false, ["temporaryDirectory"=>realpath(__DIR__."/temp")]);
+			$search->init($_REQUEST['search'], $_REQUEST['page']);
+		}
+		else 
+			$search = LittleYoutube::search($_REQUEST['search'], ["temporaryDirectory"=>realpath(__DIR__."/temp")]);
 		//$error .= $search->error."\n";
 		print_r(json_encode(["data"=>$search->data, "error"=>$error]));
 	}
