@@ -45,7 +45,7 @@ namespace ScarletsFiction\LittleYoutube{
 					"processDetail"=>true,  // Set it to false if you don't need to download the video data
 					"useRedirector"=>false, // Optional if the video can't be downloaded on some country
 					"loadVideoSize"=>false, // Would cause slow down because all video format will be checked
-					"processVideoFrom"=>"VideoInfo" // Parse from VideoInfo or VideoPage
+					"processVideoFrom"=>"VideoPage" // Parse from VideoInfo or VideoPage
 				];
 		}
 
@@ -100,6 +100,34 @@ namespace ScarletsFiction\LittleYoutube{
 					$this->onError("Need to solve captcha from youtube");
 					return false;
 				}
+				$related = explode('"secondaryResults":{"secondaryResults":{"results":[', $data)[1];
+				$related = explode('],"continuations"', $related)[0];
+				$related = json_decode('['.$related.']', true);
+				
+				for ($i=0; $i < count($related); $i++) { 
+					if(isset($related[$i]['compactAutoplayRenderer']))
+						$videoInfo = $related[$i]['compactAutoplayRenderer']['contents'][0]['compactVideoRenderer'];
+					else
+						$videoInfo = $related[$i]['compactVideoRenderer'];
+
+					$related_ = [];
+					$related_['videoID'] = $videoInfo['videoId'];
+					$related_['title'] = $videoInfo['title']['simpleText'];
+
+					$related_['channelID'] = $videoInfo['longBylineText']['runs'][0];
+					$related_['channelName'] = $related_['channelID']['text'];
+					$related_['channelID'] = $related_['channelID']['navigationEndpoint']['browseEndpoint']['browseId'];
+
+					$related_['viewCount'] = $videoInfo['viewCountText']['simpleText'];
+					$related_['viewCount'] = explode(' ', $related_['viewCount'])[0];
+					$related_['viewCount'] = implode('', explode(',', $related_['viewCount']));
+
+					$related_['duration'] = $videoInfo['lengthText']['simpleText'];
+					$related[$i] = $related_;
+				}
+
+				$this->data['relatedVideo'] = $related;
+
 				$data = explode('ytplayer.config = ', $data)[1];
 				$data = explode(';ytplayer.load', $data);
 				$data = $data[0];
@@ -127,6 +155,7 @@ namespace ScarletsFiction\LittleYoutube{
 			$this->data['duration'] = $data['length_seconds'];
 			$this->data['viewCount'] = $data['view_count'];
 			$this->data['channelID'] = $data['ucid'];
+			$this->data['channelName'] = $data['author'];
 
 			$subtitle = json_decode($data['player_response'], true);
 			if(isset($subtitle['captions'])&&isset($subtitle['captions']['playerCaptionsTracklistRenderer']['captionTracks'])){
