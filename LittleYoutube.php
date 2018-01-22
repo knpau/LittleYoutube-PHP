@@ -107,8 +107,10 @@ namespace ScarletsFiction\LittleYoutube{
 				for ($i=0; $i < count($related); $i++) { 
 					if(isset($related[$i]['compactAutoplayRenderer']))
 						$videoInfo = $related[$i]['compactAutoplayRenderer']['contents'][0]['compactVideoRenderer'];
-					else
+					else{
+						if(!isset($related[$i]['compactVideoRenderer'])) continue;
 						$videoInfo = $related[$i]['compactVideoRenderer'];
+					}
 
 					$related_ = [];
 					$related_['videoID'] = $videoInfo['videoId'];
