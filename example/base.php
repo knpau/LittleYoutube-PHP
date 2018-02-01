@@ -1,7 +1,7 @@
 <?php
 	require_once __DIR__."/../src/LittleYoutube.php";
 	$error = '';
-	use \LittleYoutube\LittleYoutube;
+	use \ScarletsFiction\LittleYoutube;
 
 	if(isset($_REQUEST['video'])){
 		$video = LittleYoutube::video($_REQUEST['video'], ["temporaryDirectory"=>realpath(__DIR__."/temp")]);

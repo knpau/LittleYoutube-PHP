@@ -11,7 +11,7 @@
 		You should have include this small notice along this script.
 	***/
 
-namespace LittleYoutube{
+namespace ScarletsFiction\LittleYoutube{
 	class LittleYoutubeInfo{
 		public $error;
 		public $data;
@@ -1024,24 +1024,24 @@ namespace LittleYoutube{
 			$this->processDetails();
 		}
 	}
-
-	class LittleYoutube{
-		public static function video($id, $options=false){
-			return new Video($id, $options);
-		}
-		public static function channel($id, $options=false){
-			return new Channel($id, $options);
-		}
-		public static function playlist($id, $options=false){
-			return new Playlist($id, $options);
-		}
-		public static function search($id, $options=false){
-			return new Search($id, $options);
-		}
-	}
 }
 
 namespace ScarletsFiction{
+	class LittleYoutube{
+		public static function video($id, $options=false){
+			return new LittleYoutube\Video($id, $options);
+		}
+		public static function channel($id, $options=false){
+			return new LittleYoutube\Channel($id, $options);
+		}
+		public static function playlist($id, $options=false){
+			return new LittleYoutube\Playlist($id, $options);
+		}
+		public static function search($id, $options=false){
+			return new LittleYoutube\Search($id, $options);
+		}
+	}
+
 	class WebApi
 	{
 		public static function loadURL($url, $options=false){

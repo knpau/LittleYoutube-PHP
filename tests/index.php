@@ -3,7 +3,7 @@
 	require_once __DIR__."/../vendor/autoload.php";
 	//require_once __DIR__."/../LittleYoutube.php";
 
-	use \LittleYoutube\LittleYoutube;
+	use \ScarletsFiction\LittleYoutube;
 
 	$error = '';
 	$video = LittleYoutube::video("https://www.youtube.com/watch?v=R1RonAlzvZk", ["temporaryDirectory"=>realpath(__DIR__."/../example/temp")]);
