@@ -4,14 +4,12 @@
     "require": {
         "php": ">=5.4"
     },
-	"license": "GPL-2.0",
-	"keywords": ["youtube", "php", "library", "littleyoutube"],
+    "license": "GPL-2.0",
+    "keywords": ["youtube", "php", "library", "littleyoutube"],
     "autoload": {
-        "classmap": [
-            "LittleYoutube.php"
-        ]
+        "classmap": ["src/LittleYoutube.php"]
     },
-	"authors": [
-		{"name": "StefansArya"}
-	]
+    "authors": [
+        {"name": "StefansArya"}
+    ]
 }

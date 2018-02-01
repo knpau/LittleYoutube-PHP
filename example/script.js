@@ -67,7 +67,7 @@ function videoButton(){
 			$('#subtitle').css('display', '');
 			for (var i = 0; i < subtitle.length; i++) {
 				$('#subtitle .button-group').append(buttonTemplate
-					.replace("*url*", "base.php?lyric="+encodeURIComponent(subtitle[i].url))
+					.replace("*url*", "example/base.php?lyric="+encodeURIComponent(subtitle[i].url))
 					.replace("*text*", subtitle[i].lang));
 			}
 		}
@@ -177,7 +177,7 @@ function searchButton(next){
 function request(data, callback, error){
 	$('.tab-pane.active a.btn')[0].innerHTML = "Loading";
 	$.ajax({
-		url:"base.php",
+		url:"example/base.php",
 		data:data
 	}).done(function(respond){
 		if(callback) callback(respond);

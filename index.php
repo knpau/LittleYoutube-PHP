@@ -3,7 +3,7 @@
 	<head>
 		<title>LittleYoutube</title>
 		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
-		<link rel="stylesheet" href="style.css">
+		<link rel="stylesheet" href="example/style.css">
 		<script src="//code.jquery.com/jquery-3.1.1.min.js"></script>
 		<script src="//cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"></script>
 		<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"></script>
@@ -111,6 +111,6 @@
         <p>Have you ever dreamed put your own channel on your own website?<br><a href="https://github.com/StefansArya/LittleYoutube-PHP" target="_blank">LittleYoutube</a> is here to help you</p>
       </div>
     </div>
-	<script src="script.js?version=1"></script>
+	<script src="example/script.js"></script>
   </body>
 </html>

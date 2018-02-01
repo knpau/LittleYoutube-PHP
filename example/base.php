@@ -1,8 +1,7 @@
 <?php
-	//require_once __DIR__."/../vendor/autoload.php";
-	require_once __DIR__."/../LittleYoutube.php";
-	use \ScarletsFiction\LittleYoutube;
+	require_once __DIR__."/../src/LittleYoutube.php";
 	$error = '';
+	use \LittleYoutube\LittleYoutube;
 
 	if(isset($_REQUEST['video'])){
 		$video = LittleYoutube::video($_REQUEST['video'], ["temporaryDirectory"=>realpath(__DIR__."/temp")]);

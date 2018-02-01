@@ -1,7 +1,7 @@
 <?php
 
 	/***
-		LittleYoutube Library v1.2
+		LittleYoutube Library v1.2.1
 		https://github.com/StefansArya/LittleYoutube-PHP
 		
 		This is a free library. You can redistribute it and/or modify
@@ -11,7 +11,7 @@
 		You should have include this small notice along this script.
 	***/
 
-namespace ScarletsFiction\LittleYoutube{
+namespace LittleYoutube{
 	class LittleYoutubeInfo{
 		public $error;
 		public $data;
@@ -39,7 +39,7 @@ namespace ScarletsFiction\LittleYoutube{
 			$this->data = [];
 			if(!$this->settings)
 				$this->settings = [
-					"temporaryDirectory"=>realpath(__DIR__."/example/temp"),
+					"temporaryDirectory"=>realpath(__DIR__."/../example/temp"),
 					"signatureDebug"=>false,
 					"onError"=>"throw",
 					"processDetail"=>true,  // Set it to false if you don't need to download the video data
@@ -1024,24 +1024,24 @@ namespace ScarletsFiction\LittleYoutube{
 			$this->processDetails();
 		}
 	}
+
+	class LittleYoutube{
+		public static function video($id, $options=false){
+			return new Video($id, $options);
+		}
+		public static function channel($id, $options=false){
+			return new Channel($id, $options);
+		}
+		public static function playlist($id, $options=false){
+			return new Playlist($id, $options);
+		}
+		public static function search($id, $options=false){
+			return new Search($id, $options);
+		}
+	}
 }
 
 namespace ScarletsFiction{
-	class LittleYoutube{
-		public static function video($id, $options=false){
-			return new LittleYoutube\Video($id, $options);
-		}
-		public static function channel($id, $options=false){
-			return new LittleYoutube\Channel($id, $options);
-		}
-		public static function playlist($id, $options=false){
-			return new LittleYoutube\Playlist($id, $options);
-		}
-		public static function search($id, $options=false){
-			return new LittleYoutube\Search($id, $options);
-		}
-	}
-
 	class WebApi
 	{
 		public static function loadURL($url, $options=false){
