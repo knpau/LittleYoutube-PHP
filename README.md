@@ -302,14 +302,6 @@ This will add result from the next page to current data
 This will add result from the previous page to current data
 > Actually this is useless might
 
-### Get last error message
-> $classes->error;
-
-Return string
-```
-errorMsg //Failed to do stuff
-```
-
 ### Change settings dynamically
 You can also change the settings after initialize LittleYoutube class
 > $classes->settings[options] = value;

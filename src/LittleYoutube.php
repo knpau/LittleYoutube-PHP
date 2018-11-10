@@ -548,9 +548,9 @@ namespace LittleYoutube{
 			$this->signatureDebug('decipherPatterns = '.$decipherPatterns."\n");
 		
 			preg_match_all('/(?<=;).*?(?=\[|\.)/', $decipherPatterns, $deciphers);
-	        if($deciphers && count($deciphers[0]) > 2){
-	            $deciphers = $deciphers[0][0];
-	        }
+			if($deciphers && count($deciphers[0]) > 2){
+				$deciphers = $deciphers[0][0];
+			}
 			else{
 				$this->onError("Failed to get deciphers function");
 				return false;
@@ -565,8 +565,8 @@ namespace LittleYoutube{
 		
 			// Convert pattern to array
 			$decipherPatterns = str_replace($deciphersObjectVar . '.', '', $decipherPatterns);
-	        $decipherPatterns = str_replace($deciphersObjectVar . '[', '', $decipherPatterns);
-	        $decipherPatterns = str_replace(['](a,', '(a,'], '->(', $decipherPatterns);
+			$decipherPatterns = str_replace($deciphersObjectVar . '[', '', $decipherPatterns);
+			$decipherPatterns = str_replace(['](a,', '(a,'], '->(', $decipherPatterns);
 			$decipherPatterns = explode(';', $decipherPatterns);
 			$this->classData['signature']['patterns'] = $decipherPatterns;
 		
