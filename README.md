@@ -1,16 +1,17 @@
 <a href="https://www.patreon.com/stefansarya"><img src="http://anisics.stream/assets/img/support-badge.png" height="20"></a>
-[![Build Status](https://travis-ci.org/StefansArya/LittleYoutube-PHP.svg?branch=master)](https://travis-ci.org/StefansArya/LittleYoutube-PHP)
+[![Build Status](https://travis-ci.org/ScarletsFiction/LittleYoutube-PHP.svg?branch=master)](https://travis-ci.org/ScarletsFiction/LittleYoutube-PHP)
 [![Latest Version](https://img.shields.io/badge/build-stable-brightgreen.svg)](https://packagist.org/packages/scarletsfiction/littleyoutube)
-[![Software License](https://img.shields.io/badge/license-GPL3.0-brightgreen.svg)](LICENSE)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 
 LittleYoutube
 ==========
 
-Have you ever dreamed put your own channel on your own website?
-LittleYoutube is here to help you
+Have you ever dreamed put your own channel on your own website?<br>
+LittleYoutube is here to help you<br>
 
-> Note:
->   This library is developed to help the community. 
+> Warn:<br>
+>   Youtube doesn't like their content being scraped. Please respect their service by not use this library as a scraping bot or a replacement for their website.<br>
+>   This library is developed to help the community.
 
 ## Table of contents
  - [LittleYoutube](#littleyoutube)
@@ -47,7 +48,7 @@ LittleYoutube is here to help you
 
 Add LittleYoutube to composer.json configuration file.
 ```
-$ composer require stefansarya/littleyoutube
+$ composer require scarletsfiction/littleyoutube
 ```
 
 And update it
@@ -316,8 +317,8 @@ You can also change the settings after initialize LittleYoutube class
 
 If you want to help in LittleYoutube library, please make it even better and start a pull request into it.
 
-Keep it simple and keep it clear.
+Don't forget to follow me ^.^)/
 
 ## License
 
-LittleYoutube is under the GPL license.
+LittleYoutube is under the MIT license.
