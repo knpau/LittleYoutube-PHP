@@ -124,7 +124,10 @@ namespace LittleYoutube{
 					$related_['viewCount'] = explode(' ', $related_['viewCount'])[0];
 					$related_['viewCount'] = implode('', explode(',', $related_['viewCount']));
 
-					$related_['duration'] = $videoInfo['lengthText']['simpleText'];
+					$related_['duration'] = 0;
+					if(isset($videoInfo['lengthText']))
+						$related_['duration'] = $videoInfo['lengthText']['simpleText'];
+
 					$related[$i] = $related_;
 				}
 
@@ -160,6 +163,8 @@ namespace LittleYoutube{
 
 			if(isset($data['view_count']))
 				$this->data['viewCount'] = $data['view_count'];
+			else 
+				$this->data['viewCount'] = 0;
 
 			$subtitle = json_decode($data['player_response'], true);
 			if(isset($subtitle['captions'])&&isset($subtitle['captions']['playerCaptionsTracklistRenderer']['captionTracks'])){
@@ -525,11 +530,16 @@ namespace LittleYoutube{
 			$decipherPatterns = explode('.split("")', $decipherScript);
 			unset($decipherPatterns[0]);
 			foreach ($decipherPatterns as $value) {
+
+				// Make sure it's inside a function and also have join
 				$value = explode('.join("")', explode('}', $value)[0]);
 				if(count($value) === 2){
 					$value = explode(';', $value[0]);
+
+					// Remove first and last index
 					array_pop($value);
 					unset($value[0]);
+
 					$decipherPatterns = implode(';', $value);
 					break;
 				}
@@ -537,18 +547,13 @@ namespace LittleYoutube{
 			
 			$this->signatureDebug('decipherPatterns = '.$decipherPatterns."\n");
 		
-			$deciphers = explode("(a", $decipherPatterns);
-			for ($i=0; $i < count($deciphers); $i++) { 
-				$deciphers[$i] = explode('.', explode(';', $deciphers[$i])[1])[0];
-				if(count(explode($deciphers[$i], $decipherPatterns))>=2){
-					// This object was most called, that's mean this is the deciphers
-					$deciphers = $deciphers[$i];
-					break;
-				}
-				else if($i==count($deciphers)-1){
-					$this->onError("Failed to get deciphers function");
-					return false;
-				}
+			preg_match_all('/(?<=;).*?(?=\[|\.)/', $decipherPatterns, $deciphers);
+	        if($deciphers && count($deciphers[0]) > 2){
+	            $deciphers = $deciphers[0][0];
+	        }
+			else{
+				$this->onError("Failed to get deciphers function");
+				return false;
 			}
 		
 			$deciphersObjectVar = $deciphers;
@@ -559,8 +564,9 @@ namespace LittleYoutube{
 			$this->signatureDebug(print_r($decipher, true)."\n");
 		
 			// Convert pattern to array
-			$decipherPatterns = str_replace($deciphersObjectVar.'.', '', $decipherPatterns);
-			$decipherPatterns = str_replace('(a,', '->(', $decipherPatterns);
+			$decipherPatterns = str_replace($deciphersObjectVar . '.', '', $decipherPatterns);
+	        $decipherPatterns = str_replace($deciphersObjectVar . '[', '', $decipherPatterns);
+	        $decipherPatterns = str_replace(['](a,', '(a,'], '->(', $decipherPatterns);
 			$decipherPatterns = explode(';', $decipherPatterns);
 			$this->classData['signature']['patterns'] = $decipherPatterns;
 		
