@@ -28,10 +28,6 @@ function videoButton(){
 			$("#videoError").html('Parse error\n<br>'+respond);
         	return;
     	}
-		if(json.error.length>=4){
-			$("#videoError").html(json.error);
-			return;
-		}
 		$("#videoError").html('');
 		$('#videoDetail').css('display', '');
 		$('#videoDetail #title').html(json.data.title);
@@ -46,6 +42,7 @@ function videoButton(){
 		$('#subtitle .button-group').html('');
 		var encoded = json.data.video.encoded;
 		var adaptive = json.data.video.adaptive;
+		var stream = json.data.video.stream;
 		var subtitle = json.data.subtitle;
 		if(encoded){
 			$('#encoded').css('display', '');
@@ -62,6 +59,12 @@ function videoButton(){
 					.replace("*url*", adaptive[i].url)
 					.replace("*text*", adaptive[i].quality+'('+adaptive[i].type[0]+'/'+adaptive[i].type[1]+')'));
 			}
+		}
+		if(stream){
+			$('#encoded').css('display', '');
+			$('#encoded .button-group').append(buttonTemplate
+				.replace("*url*", stream)
+				.replace("*text*", 'Streaming link'));
 		}
 		if(subtitle){
 			$('#subtitle').css('display', '');
@@ -83,10 +86,6 @@ function channelButton(){
 			$("#channelError").html('Parse error\n<br>'+respond);
         	return;
     	}
-		if(json.error.length>=4){
-			$("#channelError").html(json.error);
-			return;
-		}
 		$("#channelError").html('');
 		var list = json.data.playlists;
 		$('#channelGroupList').html('');
@@ -108,10 +107,6 @@ function playlistButton(){
 			$("#playlistError").html('Parse error\n<br>'+respond);
         	return;
     	}
-		if(json.error.length>=4){
-			$("#playlistError").html(json.error);
-			return;
-		}
 		$("#playlistError").html('');
 		var list = json.data.videos;
 		$('#playlistGroupList').html('');
@@ -138,11 +133,6 @@ function parseSearchResult(respond){
 		$("#searchError").html('Parse error\n<br>'+respond);
     	return;
     }
-	if(json.error.length>=4){
-		$("#searchError").html(json.error);
-		console.log(json.error);
-		return;
-	}
 	$("#searchError").html('');
 	var list = json.data.videos;
 	var temp = '';

@@ -1,38 +1,62 @@
 <?php
-	require_once __DIR__."/../src/LittleYoutube.php";
-	$error = '';
-	use \ScarletsFiction\LittleYoutube;
+require_once __DIR__."/../src/LittleYoutube.php";
+use \LittleYoutube\LittleYoutube;
 
+# Declare some variable
+$error = '';
+$haveError = "Please check error on the /example/error.log";
+$options = [
+	'temporaryDirectory'=>realpath(__DIR__."/temp"),
+	'signatureDebug'=>true,
+	'processVideoFrom'=>'VideoPage',
+	'onError'=>'throw'
+];
+$handler = null;
+
+# Catch any error
+try{
+
+	# Get video data
 	if(isset($_REQUEST['video'])){
-		$video = LittleYoutube::video($_REQUEST['video'], ["temporaryDirectory"=>realpath(__DIR__."/temp")]);
-		//$error .= $video->error."\n";
-		print_r(json_encode(["data"=>$video->data, "picture"=>$video->getImage(), "error"=>$error]));
+		$handler = LittleYoutube::video($_REQUEST['video'], $options);
+
+		die(json_encode(["data"=>$handler->data, "picture"=>$handler->getImage()]));
 	}
 
+	# Get channel data
 	if(isset($_REQUEST['channel'])){
-		$channel = LittleYoutube::channel($_REQUEST['channel'], ["temporaryDirectory"=>realpath(__DIR__."/temp")]);
-		//$error .= $channel->error."\n";
-		print_r(json_encode(["data"=>$channel->data, "error"=>$error]));
+		$handler = LittleYoutube::channel($_REQUEST['channel'], $options);
+
+		die(json_encode(["data"=>$handler->data]));
 	}
 
+	# Get playlist data
 	if(isset($_REQUEST['playlist'])){
-		$playlist = LittleYoutube::playlist($_REQUEST['playlist'], ["temporaryDirectory"=>realpath(__DIR__."/temp")]);
-		//$error .= $playlist->error."\n";
-		print_r(json_encode(["data"=>$playlist->data, "error"=>$error]));
+		$handler = LittleYoutube::playlist($_REQUEST['playlist'], $options);
+
+		die(json_encode(["data"=>$handler->data]));
 	}
 
+	# Search video
 	if(isset($_REQUEST['search'])){
 		if(isset($_REQUEST['page'])){
-			$search = LittleYoutube::search(false, ["temporaryDirectory"=>realpath(__DIR__."/temp")]);
-			$search->init($_REQUEST['search'], $_REQUEST['page']);
+			$handler = LittleYoutube::search(false, $options);
+			$handler->init($_REQUEST['search'], $_REQUEST['page']);
 		}
 		else 
-			$search = LittleYoutube::search($_REQUEST['search'], ["temporaryDirectory"=>realpath(__DIR__."/temp")]);
-		//$error .= $search->error."\n";
-		print_r(json_encode(["data"=>$search->data, "error"=>$error]));
+			$handler = LittleYoutube::search($_REQUEST['search'], $options);
+
+		die(json_encode(["data"=>$handler->data]));
 	}
 
+	# Get lyrics only
 	if(isset($_REQUEST['lyric'])){
-		$lyric = LittleYoutube\video::parseSubtitleURL($_REQUEST['lyric'], 'srt');
+		$lyric = LittleYoutube::video()->parseSubtitleURL($_REQUEST['lyric'], 'srt');
 		\ScarletsFiction\Stream::variableFile('lyric.srt', $lyric);
 	}
+
+} catch(\Exception $e) {
+	file_put_contents('error.log', $e->getMessage()."\n");
+	file_put_contents('error.log', str_replace(realpath("./.."), '', $e->getTraceAsString())."\n", FILE_APPEND);
+	echo("Please check /example/error.log");
+}
