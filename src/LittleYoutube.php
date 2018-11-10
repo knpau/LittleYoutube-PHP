@@ -1,17 +1,17 @@
 <?php
 
-	/***
-		LittleYoutube Library v1.2.1
-		https://github.com/StefansArya/LittleYoutube-PHP
-		
-		This is a free library. You can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation.
-		
-		You should have include this small notice along this script.
-	***/
+/***
+	LittleYoutube Library v1.2.2
+	https://github.com/StefansArya/LittleYoutube-PHP
+	
+	This is a free library. You can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation.
+	
+	You should have include this small notice along this script.
+***/
 
-namespace ScarletsFiction\LittleYoutube{
+namespace LittleYoutube{
 	class LittleYoutubeInfo{
 		public $error;
 		public $data;
@@ -30,6 +30,7 @@ namespace ScarletsFiction\LittleYoutube{
 				$this->onError("Temporary isn't writeable - change the folder permission to 777");
 			}
 
+			$this->signatureDebug('', false);
 			if($id) $this->init($id);
 		}
 
@@ -47,6 +48,11 @@ namespace ScarletsFiction\LittleYoutube{
 					"loadVideoSize"=>false, // Would cause slow down because all video format will be checked
 					"processVideoFrom"=>"VideoPage" // Parse from VideoInfo or VideoPage
 				];
+		}
+
+		public function signatureDebug($msg, $append = true){
+			if(!$this->settings['signatureDebug']) return;
+			file_put_contents('signatureDebug.log', $msg, $append ? FILE_APPEND : 0);
 		}
 
 		public function onError($message){
@@ -155,9 +161,11 @@ namespace ScarletsFiction\LittleYoutube{
 		private function parseVideoInfo($data){
 			$this->data['title'] = $data['title'];
 			$this->data['duration'] = $data['length_seconds'];
-			$this->data['viewCount'] = $data['view_count'];
 			$this->data['channelID'] = $data['ucid'];
 			$this->data['channelName'] = $data['author'];
+
+			if(isset($data['view_count']))
+				$this->data['viewCount'] = $data['view_count'];
 
 			$subtitle = json_decode($data['player_response'], true);
 			if(isset($subtitle['captions'])&&isset($subtitle['captions']['playerCaptionsTracklistRenderer']['captionTracks'])){
@@ -506,10 +514,9 @@ namespace ScarletsFiction\LittleYoutube{
 		private function getSignatureParser(){
 			$this->classData['signature'] = ['playerID'=>$this->data['playerID']];
 			if(!isset($this->classData['signature'])) $this->classData['signature'] = [];
-			if($this->settings['signatureDebug']){
-				$this->data['signature']['log'] = "==== Load player script and execute patterns ====\n\n";
-				$this->data['signature']['log'] .= "Loading player ID = ".$this->data['playerID']."\n";
-			}
+
+			$this->signatureDebug("==== Load player script and execute patterns ====\n");
+			$this->signatureDebug("Loading player ID = ".$this->data['playerID']."\n");
 			
 			if(!$this->data['playerID']) return false;
 
@@ -517,42 +524,24 @@ namespace ScarletsFiction\LittleYoutube{
 				$decipherScript = file_get_contents($this->settings['temporaryDirectory'].$this->data['playerID'].'.js');
 			} else{
 				$this->onError("Player script was not found for id: ".$this->data['playerID']);
-				if($this->settings['signatureDebug'])
-					$this->data['signature']['log'] .= "Failed to load youtube script for player ID = ".$this->data['playerID']."\n";
-				return false;
-			}
-		
-			// Some preparation
-			$signatureCall = explode('("signature",', $decipherScript);
-			$callCount = count($signatureCall);
-			if($callCount<=1){
-				$this->onError("Failed to get signature function - Please clear temp folder");
+				$this->signatureDebug("Failed to load youtube script for player ID = ".$this->data['playerID']."\n");
 				return false;
 			}
 
-			// Search for function call for example: e.set("signature",PE(f.s));
-			// We need to get "PE"
-			$signatureFunction = "";
-			for($i=$callCount-1; $i > 0; $i--){
-				$signatureCall[$i] = explode(');', $signatureCall[$i])[0];
-				if(strpos($signatureCall[$i], '(')){
-					$signatureFunction = explode('(', $signatureCall[$i])[0];
+			$decipherPatterns = explode('.split("")', $decipherScript);
+			unset($decipherPatterns[0]);
+			foreach ($decipherPatterns as $value) {
+				$value = explode('.join("")', explode('}', $value)[0]);
+				if(count($value) === 2){
+					$value = explode(';', $value[0]);
+					array_pop($value);
+					unset($value[0]);
+					$decipherPatterns = implode(';', $value);
 					break;
 				}
 			}
 			
-			if($this->settings['signatureDebug'])
-				$this->data['signature']['log'] .= 'signatureFunction = '.$signatureFunction."\n";
-
-			$decipherPatterns = explode($signatureFunction."=function(", $decipherScript);
-			if(count($decipherPatterns)==1){
-				$this->onError("Failed to get signature function - Please clear temp folder");
-				return false;
-			}
-			$decipherPatterns = explode('};', $decipherPatterns[1])[0];
-			
-			if($this->settings['signatureDebug'])
-				$this->data['signature']['log'] .= 'decipherPatterns = '.$decipherPatterns."\n";
+			$this->signatureDebug('decipherPatterns = '.$decipherPatterns."\n");
 		
 			$deciphers = explode("(a", $decipherPatterns);
 			for ($i=0; $i < count($deciphers); $i++) { 
@@ -573,13 +562,12 @@ namespace ScarletsFiction\LittleYoutube{
 			$decipher = str_replace(["\n", "\r"], "", $decipher);
 			$decipher = explode('}};', $decipher)[0];
 			$decipher = explode("},", $decipher);
-			if($this->settings['signatureDebug'])
-				$this->data['signature']['log'] .= print_r($decipher, true);
+			$this->signatureDebug(print_r($decipher, true)."\n");
 		
 			// Convert pattern to array
 			$decipherPatterns = str_replace($deciphersObjectVar.'.', '', $decipherPatterns);
 			$decipherPatterns = str_replace('(a,', '->(', $decipherPatterns);
-			$decipherPatterns = explode(';', explode('){', $decipherPatterns)[1]);
+			$decipherPatterns = explode(';', $decipherPatterns);
 			$this->classData['signature']['patterns'] = $decipherPatterns;
 		
 			// Convert deciphers to object
@@ -602,8 +590,7 @@ namespace ScarletsFiction\LittleYoutube{
 			$this->getLatestPlayerScript($forceReset);
 
 			if(isset($this->classData['signature']['playerID'])){
-				if($this->settings['signatureDebug'])
-					$this->data['signature']['log'] = "==== Deciphers loaded ====\n";
+				$this->signatureDebug("==== Deciphers loaded ====\n");
 			}
 			elseif(!$forceReset){
 				return $this->decipherSignature($signature, true);
@@ -616,85 +603,61 @@ namespace ScarletsFiction\LittleYoutube{
 			$patterns = $this->classData['signature']['patterns'];
 			$deciphers = $this->classData['signature']['deciphers'];
 
-			if($this->settings['signatureDebug']){
-				$this->data['signature']['log'] = "==== Retrieved deciphers ====\n\n";
-				$this->data['signature']['log'] .= print_r($patterns, true);
-				$this->data['signature']['log'] .= print_r($deciphers, true);
-			}
-		
-			if($this->settings['signatureDebug'])
-				$this->data['signature']['log'] .= "\n\n\n==== Processing ====\n\n";
+			$this->signatureDebug("Pattern ".print_r($patterns, true));
+			$this->signatureDebug("Deciphers ".print_r($deciphers, true));
+			$this->signatureDebug("\n==== Processing ====\n");
 		
 			// Execute every $patterns with $deciphers dictionary
-			$processSignature = $signature;
+			$processSignature = str_split($signature);
 			for ($i=0; $i < count($patterns); $i++) {
 				// This is the deciphers dictionary, and should be updated if there are different pattern
 				// as PHP can't execute javascript
 		
-				//Handle non deciphers pattern
-				if(strpos($patterns[$i], '->')===false){
-					if(strpos($patterns[$i], '.split("")')!==false)
-					{
-						$processSignature = str_split($processSignature);
-						if($this->settings['signatureDebug'])
-							$this->data['signature']['log'] .= "String splitted\n";
-					}
-					else if(strpos($patterns[$i], '.join("")')!==false)
-					{
-						$processSignature = implode('', $processSignature);
-						if($this->settings['signatureDebug'])
-							$this->data['signature']['log'] .= "String combined\n";
-					}
-					else{
-						$this->onError("Decipher dictionary was not found #1");
+				//Separate commands
+				$executes = explode('->', $patterns[$i]);
+		
+				// This is parameter b value for 'function(a,b){}'
+				$number = intval(str_replace(['(', ')'], '', $executes[1]));
+				// Parameter a = $processSignature
+				// Parameter b = $number
+		
+				$execute = $deciphers[$executes[0]];
+		
+				//Find matched command dictionary
+				$this->signatureDebug("Executing $executes[0] -> $number");
+				switch($execute){
+					case "a.reverse()":
+						$processSignature = array_reverse($processSignature);
+						$this->signatureDebug(" (Reversing array)\n");
+					break;
+					case "var c=a[0];a[0]=a[b%a.length];a[b]=c":
+						$c = $processSignature[0];
+						$processSignature[0] = $processSignature[$number%count($processSignature)];
+						$processSignature[$number] = $c;
+						$this->signatureDebug(" (Swapping array)\n");
+					break;
+	                case 'var c=a[0];a[0]=a[b%a.length];a[b%a.length]=c':
+	                    $c = $processSignature[0];
+	                    $processSignature[0] = $processSignature[$number%count($processSignature)];
+	                    $processSignature[$number%count($processSignature)] = $c;
+						$this->signatureDebug(" (Swapping array)\n");
+	                break;
+					case "a.splice(0,b)":
+						$processSignature = array_slice($processSignature, $number);
+						$this->signatureDebug(" (Removing array)\n");
+					break;
+					default:
+						$this->onError("Decipher dictionary was not found #2: ".$execute);
 						return false;
-					}
-				} 
-				else
-				{
-					//Separate commands
-					$executes = explode('->', $patterns[$i]);
-		
-					// This is parameter b value for 'function(a,b){}'
-					$number = intval(str_replace(['(', ')'], '', $executes[1]));
-					// Parameter a = $processSignature
-		
-					$execute = $deciphers[$executes[0]];
-		
-					//Find matched command dictionary
-					if($this->settings['signatureDebug'])
-						$this->data['signature']['log'] .= "Executing $executes[0] -> $number";
-					switch($execute){
-						case "a.reverse()":
-							$processSignature = array_reverse($processSignature);
-							if($this->settings['signatureDebug'])
-								$this->data['signature']['log'] .= " (Reversing array)\n";
-						break;
-						case "var c=a[0];a[0]=a[b%a.length];a[b]=c":
-							$c = $processSignature[0];
-							$processSignature[0] = $processSignature[$number%count($processSignature)];
-							$processSignature[$number] = $c;
-							if($this->settings['signatureDebug'])
-								$this->data['signature']['log'] .= " (Swapping array)\n";
-						break;
-						case "a.splice(0,b)":
-							$processSignature = array_slice($processSignature, $number);
-							if($this->settings['signatureDebug'])
-								$this->data['signature']['log'] .= " (Removing array)\n";
-						break;
-						default:
-							$this->onError("Decipher dictionary was not found #2");
-							return false;
-						break;
-					}
+					break;
 				}
 			}
+
+			$processSignature = implode('', $processSignature);
 		
-			if($this->settings['signatureDebug']){
-				$this->data['signature']['log'] .= "\n\n\n==== Result ====\n";
-				$this->data['signature']['log'] .= "Signature  : ".$signature."\n";
-				$this->data['signature']['log'] .= "Deciphered : ".$processSignature;
-			}
+			$this->signatureDebug("\n\n==== Result ====\n");
+			$this->signatureDebug("Signature  : ".$signature."\n");
+			$this->signatureDebug("Deciphered : ".$processSignature."\n");
 
 			return $processSignature;
 		}
@@ -1024,24 +987,24 @@ namespace ScarletsFiction\LittleYoutube{
 			$this->processDetails();
 		}
 	}
+
+	class LittleYoutube{
+		public static function video($id = '', $options=false){
+			return new Video($id, $options);
+		}
+		public static function channel($id = '', $options=false){
+			return new Channel($id, $options);
+		}
+		public static function playlist($id = '', $options=false){
+			return new Playlist($id, $options);
+		}
+		public static function search($title, $options=false){
+			return new Search($title, $options);
+		}
+	}
 }
 
 namespace ScarletsFiction{
-	class LittleYoutube{
-		public static function video($id, $options=false){
-			return new LittleYoutube\Video($id, $options);
-		}
-		public static function channel($id, $options=false){
-			return new LittleYoutube\Channel($id, $options);
-		}
-		public static function playlist($id, $options=false){
-			return new LittleYoutube\Playlist($id, $options);
-		}
-		public static function search($id, $options=false){
-			return new LittleYoutube\Search($id, $options);
-		}
-	}
-
 	class WebApi
 	{
 		public static function loadURL($url, $options=false){
@@ -1063,6 +1026,10 @@ namespace ScarletsFiction{
 				{
 					curl_setopt($ch, CURLOPT_POST, 1);
 					curl_setopt($ch, CURLOPT_POSTFIELDS, $data['post']);
+				}
+				if(isset($data['proxyList'])){
+					curl_setopt($ch, CURLOPT_PROXY, '128.0.0.3');
+					curl_setopt($ch, CURLOPT_PROXYPORT, '8080');
 				}
 			}
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
