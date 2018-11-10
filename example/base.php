@@ -6,8 +6,8 @@ use \LittleYoutube\LittleYoutube;
 $error = '';
 $haveError = "Please check error on the /example/error.log";
 $options = [
-	'temporaryDirectory'=>realpath(__DIR__."/temp"),
-	'signatureDebug'=>true,
+	'temporaryDirectory'=>realpath("./temp"),
+	'signatureDebug'=>realpath("./signatureDebug.log"),
 	'processVideoFrom'=>'VideoPage',
 	'onError'=>'throw'
 ];
