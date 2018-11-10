@@ -271,8 +271,8 @@ namespace LittleYoutube{
 
 					// Renew decipher script if first try was failed
 					for($i=0; $i < 2; $i++){
-		  				$signature = '&signature='.$this->decipherSignature($map_info['s'], $i);
-		  				$map['url'] = $map_info['url'].$signature.'&title='.urlencode($this->data['title']);
+						$signature = '&signature='.$this->decipherSignature($map_info['s'], $i);
+						$map['url'] = $map_info['url'].$signature.'&title='.urlencode($this->data['title']);
 						
 						if($this->settings['loadVideoSize']){
 							$size = \ScarletsFiction\WebApi::urlContentSize($map['url']);
@@ -289,9 +289,9 @@ namespace LittleYoutube{
 						$map['url'] = str_replace($subdomain, 'redirector', $map['url']);
 					}
 				} 
-		  		else $map['url'] = $map_info['url'].'&title='.urlencode($this->data['title']);
-		  		
-		  		if($this->settings['loadVideoSize']) {
+				else $map['url'] = $map_info['url'].'&title='.urlencode($this->data['title']);
+				
+				if($this->settings['loadVideoSize']) {
 					$size = \ScarletsFiction\WebApi::urlContentSize($map['url']);
 					$map['size'] = \ScarletsFiction\FileApi::fileSize($size);
 				}
@@ -630,12 +630,12 @@ namespace LittleYoutube{
 						$processSignature[$number] = $c;
 						$this->signatureDebug(" (Swapping array)\n");
 					break;
-	                case 'var c=a[0];a[0]=a[b%a.length];a[b%a.length]=c':
-	                    $c = $processSignature[0];
-	                    $processSignature[0] = $processSignature[$number%count($processSignature)];
-	                    $processSignature[$number%count($processSignature)] = $c;
+					case 'var c=a[0];a[0]=a[b%a.length];a[b%a.length]=c':
+						$c = $processSignature[0];
+						$processSignature[0] = $processSignature[$number%count($processSignature)];
+						$processSignature[$number%count($processSignature)] = $c;
 						$this->signatureDebug(" (Swapping array)\n");
-	                break;
+					break;
 					case "a.splice(0,b)":
 						$processSignature = array_slice($processSignature, $number);
 						$this->signatureDebug(" (Removing array)\n");
@@ -1023,18 +1023,18 @@ namespace ScarletsFiction{
 			if($data['headers']) {
 				$data['headers'] = explode(" 200 OK", $data['headers'])[1];
 				if(preg_match("/Content-Length: (\d+)/", $data['headers'], $matches)){
-		    	  $size = (int)$matches[1];
-		    	}
-		    }
+				  $size = (int)$matches[1];
+				}
+			}
 			return $size;
 		}
 	}
 
 	class FileApi{
 		public static function fileSize($bytes, $decimals=2) {
-		  	$sz = 'BKMGTP';
-		  	$factor = floor((strlen($bytes) - 1) / 3);
-		  	return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)).' '.@$sz[$factor].($factor!=0?'B':'ytes');
+			$sz = 'BKMGTP';
+			$factor = floor((strlen($bytes) - 1) / 3);
+			return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)).' '.@$sz[$factor].($factor!=0?'B':'ytes');
 		}
 	}
 
@@ -1046,12 +1046,12 @@ namespace ScarletsFiction{
 
 			header("Accept-Ranges: bytes");
 			if(isset($_SERVER['HTTP_RANGE'])){
-			    $ranges = array_map('intval', explode('-', substr($_SERVER['HTTP_RANGE'], 6)));
-			    if(!$ranges[1]) $ranges[1] = $size - 1;
+				$ranges = array_map('intval', explode('-', substr($_SERVER['HTTP_RANGE'], 6)));
+				if(!$ranges[1]) $ranges[1] = $size - 1;
 			 
-			    header('HTTP/1.1 206 Partial Content');
-			    header('Content-Length: '.($ranges[1] - $ranges[0]));
-			    header('Content-Range: bytes $ranges[0]-$ranges[1]/$size');
+				header('HTTP/1.1 206 Partial Content');
+				header('Content-Length: '.($ranges[1] - $ranges[0]));
+				header('Content-Range: bytes $ranges[0]-$ranges[1]/$size');
 
 				fseek($fioh, $ranges[0]);
 			}else{
@@ -1061,9 +1061,9 @@ namespace ScarletsFiction{
 			self::buildResponse($name, $type, $size);
 
 			while(!feof($fioh)) {
-			    print(fread($fioh, $downloadSpeed/4));
-			    flush();
-			    @ob_flush();
+				print(fread($fioh, $downloadSpeed/4));
+				flush();
+				@ob_flush();
 			}
 			fclose($fioh);
 		}
@@ -1087,9 +1087,9 @@ namespace ScarletsFiction{
 
 	class Converter{
 		public static function ffmpeg($file, $target, $options) {
-		  	$sz = 'BKMGTP';
-		  	$factor = floor((strlen($bytes) - 1) / 3);
-		  	return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)).' '.@$sz[$factor].($factor!=0?'B':'ytes');
+			$sz = 'BKMGTP';
+			$factor = floor((strlen($bytes) - 1) / 3);
+			return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)).' '.@$sz[$factor].($factor!=0?'B':'ytes');
 		}
 	}
 }
