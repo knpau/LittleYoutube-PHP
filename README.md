@@ -11,7 +11,8 @@ LittleYoutube is here to help you<br>
 
 > Warn:<br>
 >   Youtube doesn't like their content being scraped. Please respect their service by not use this library as a scraping bot or a replacement for their website.<br>
->   This library is developed to help the community.
+
+This library is developed to help the community.
 
 ## Table of contents
  - [LittleYoutube](#littleyoutube)
